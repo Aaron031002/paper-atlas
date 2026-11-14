@@ -3,7 +3,8 @@
     "name": "Paper Atlas",
     "tagline": "AI / ML / NLP / LLM 文獻庫與知識圖譜",
     "language": "zh-TW",
-    "repo_url": "https://github.com/Aaron031002/paper-atlas"
+    "repo_url": "https://github.com/Aaron031002/paper-atlas",
+    "url": "https://paper-atlas-wheat.vercel.app"
   },
   "domain": {
     "name": "AI / ML / NLP / LLM",
@@ -11,33 +12,146 @@
     "out_of_scope": "與 ML 無關的純系統 / 硬體論文、沒有技術內容的評論文章、未公開全文的論文。"
   },
   "categories": [
-    { "id": "architecture", "name": "模型架構", "color": "#2456C9", "description": "新的網路結構或核心運算單元（例如 Transformer、state-space model）。" },
-    { "id": "pretraining", "name": "預訓練與語言模型", "color": "#7A4BD1", "description": "預訓練目標、基礎模型、模型規模與資料的研究。" },
-    { "id": "retrieval", "name": "檢索與 RAG", "color": "#0C8577", "description": "稠密檢索、檢索增強生成、知識注入。" },
-    { "id": "reasoning-prompting", "name": "推理與提示", "color": "#B4690A", "description": "提示方法、in-context learning、推理過程的引導與分析。" },
-    { "id": "agents", "name": "Agent 與工具使用", "color": "#C2376B", "description": "會規劃、呼叫工具、與環境互動的語言模型系統。" },
-    { "id": "efficient-tuning", "name": "高效微調與壓縮", "color": "#3B8A2E", "description": "PEFT、量化、蒸餾、推論加速。" },
-    { "id": "evaluation", "name": "評測與基準", "color": "#1D7FA8", "description": "benchmark、評測方法、模型行為分析。" },
-    { "id": "safety-alignment", "name": "安全與對齊", "color": "#A8452B", "description": "對齊、可解釋性、紅隊測試、濫用防護。" },
-    { "id": "multimodal", "name": "多模態", "color": "#8A6D00", "description": "視覺、語音與語言的聯合模型。" },
-    { "id": "other", "name": "其他", "color": "#5B6678", "description": "在範圍內但不屬於以上分類；累積三篇以上同類型時應新增分類。" }
+    {
+      "id": "architecture",
+      "name": "模型架構",
+      "color": "#2456C9",
+      "description": "新的網路結構或核心運算單元（例如 Transformer、state-space model）。"
+    },
+    {
+      "id": "pretraining",
+      "name": "預訓練與語言模型",
+      "color": "#7A4BD1",
+      "description": "預訓練目標、基礎模型、模型規模與資料的研究。"
+    },
+    {
+      "id": "retrieval",
+      "name": "檢索與 RAG",
+      "color": "#0C8577",
+      "description": "稠密檢索、檢索增強生成、知識注入。"
+    },
+    {
+      "id": "reasoning-prompting",
+      "name": "推理與提示",
+      "color": "#B4690A",
+      "description": "提示方法、in-context learning、推理過程的引導與分析。"
+    },
+    {
+      "id": "agents",
+      "name": "Agent 與工具使用",
+      "color": "#C2376B",
+      "description": "會規劃、呼叫工具、與環境互動的語言模型系統。"
+    },
+    {
+      "id": "efficient-tuning",
+      "name": "高效微調與壓縮",
+      "color": "#3B8A2E",
+      "description": "PEFT、量化、蒸餾、推論加速。"
+    },
+    {
+      "id": "evaluation",
+      "name": "評測與基準",
+      "color": "#1D7FA8",
+      "description": "benchmark、評測方法、模型行為分析。"
+    },
+    {
+      "id": "safety-alignment",
+      "name": "安全與對齊",
+      "color": "#A8452B",
+      "description": "對齊、可解釋性、紅隊測試、濫用防護。"
+    },
+    {
+      "id": "multimodal",
+      "name": "多模態",
+      "color": "#8A6D00",
+      "description": "視覺、語音與語言的聯合模型。"
+    },
+    {
+      "id": "other",
+      "name": "其他",
+      "color": "#5B6678",
+      "description": "在範圍內但不屬於以上分類；累積三篇以上同類型時應新增分類。"
+    }
   ],
   "relation_types": [
-    { "id": "builds-on", "label": "建立在…之上", "description": "本篇直接採用對方的模型或方法作為基礎元件。" },
-    { "id": "extends", "label": "延伸", "description": "本篇把對方的想法推廣到新的設定、規模或任務。" },
-    { "id": "compares-with", "label": "比較對象", "description": "本篇把對方當作主要 baseline 或競爭方法。" },
-    { "id": "alternative-to", "label": "替代方案", "description": "兩篇解決同一個問題但路線不同。" },
-    { "id": "contradicts", "label": "結論相左", "description": "本篇的實驗或論點與對方不一致。" },
-    { "id": "evaluates", "label": "評測", "description": "本篇主要在評測或分析對方提出的方法。" }
+    {
+      "id": "builds-on",
+      "label": "建立在…之上",
+      "description": "本篇直接採用對方的模型或方法作為基礎元件。"
+    },
+    {
+      "id": "extends",
+      "label": "延伸",
+      "description": "本篇把對方的想法推廣到新的設定、規模或任務。"
+    },
+    {
+      "id": "compares-with",
+      "label": "比較對象",
+      "description": "本篇把對方當作主要 baseline 或競爭方法。"
+    },
+    {
+      "id": "alternative-to",
+      "label": "替代方案",
+      "description": "兩篇解決同一個問題但路線不同。"
+    },
+    {
+      "id": "contradicts",
+      "label": "結論相左",
+      "description": "本篇的實驗或論點與對方不一致。"
+    },
+    {
+      "id": "evaluates",
+      "label": "評測",
+      "description": "本篇主要在評測或分析對方提出的方法。"
+    }
   ],
   "intro_sections": [
-    { "key": "tldr", "label": "重點摘要", "type": "bullets", "required": true, "min": 2, "max": 5 },
-    { "key": "problem", "label": "研究問題與動機", "type": "markdown", "required": true },
-    { "key": "method", "label": "方法", "type": "markdown", "required": true },
-    { "key": "contributions", "label": "主要貢獻", "type": "bullets", "required": true, "min": 1, "max": 6 },
-    { "key": "results", "label": "實驗與結果", "type": "markdown", "required": true },
-    { "key": "limitations", "label": "限制", "type": "markdown", "required": true },
-    { "key": "takeaways", "label": "對後續研究的啟發", "type": "markdown", "required": true }
+    {
+      "key": "tldr",
+      "label": "重點摘要",
+      "type": "bullets",
+      "required": true,
+      "min": 2,
+      "max": 5
+    },
+    {
+      "key": "problem",
+      "label": "研究問題與動機",
+      "type": "markdown",
+      "required": true
+    },
+    {
+      "key": "method",
+      "label": "方法",
+      "type": "markdown",
+      "required": true
+    },
+    {
+      "key": "contributions",
+      "label": "主要貢獻",
+      "type": "bullets",
+      "required": true,
+      "min": 1,
+      "max": 6
+    },
+    {
+      "key": "results",
+      "label": "實驗與結果",
+      "type": "markdown",
+      "required": true
+    },
+    {
+      "key": "limitations",
+      "label": "限制",
+      "type": "markdown",
+      "required": true
+    },
+    {
+      "key": "takeaways",
+      "label": "對後續研究的啟發",
+      "type": "markdown",
+      "required": true
+    }
   ],
   "limits": {
     "one_liner_max_chars": 60,
@@ -85,7 +199,28 @@
     }
   ],
   "selection": {
-    "trusted_venues": ["NeurIPS", "ICML", "ICLR", "ACL", "EMNLP", "NAACL", "EACL", "TACL", "COLM", "AAAI", "IJCAI", "CVPR", "ICCV", "ECCV", "KDD", "SIGIR", "JMLR", "TMLR", "Nature", "Science"],
+    "trusted_venues": [
+      "NeurIPS",
+      "ICML",
+      "ICLR",
+      "ACL",
+      "EMNLP",
+      "NAACL",
+      "EACL",
+      "TACL",
+      "COLM",
+      "AAAI",
+      "IJCAI",
+      "CVPR",
+      "ICCV",
+      "ECCV",
+      "KDD",
+      "SIGIR",
+      "JMLR",
+      "TMLR",
+      "Nature",
+      "Science"
+    ],
     "preprint_rule": "未經同儕審查的 preprint 只有在符合下列任一條件時才收錄：有公開程式碼或可重現的實驗細節；來自在該主題已有同儕審查成果的作者群；或已被至少 20 篇論文引用。",
     "recency_mix": "每次搜尋若收錄 3 篇以上，至少 1 篇是近 12 個月內發表的、至少 1 篇是該主題公認的奠基之作（若尚未收錄）。",
     "reject_if": [

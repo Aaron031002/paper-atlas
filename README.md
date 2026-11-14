@@ -2,7 +2,7 @@
 
 一個由 agent 維護的論文文獻庫：每篇 paper 用固定格式的介紹存放，paper 之間的引用與關聯自動畫成可拖拉的知識圖譜。
 
-- 網站：__SITE_URL__
+- 網站：https://paper-atlas-wheat.vercel.app
 - 目前的研究領域：AI / ML / NLP / LLM（可在 `config/domain.json` 更換）
 
 你（使用者）只需要用一句話告訴 agent 想做什麼，例如「幫我找 RAG 評測的論文」或「我的研究題目是…請給建議」。去哪裡找、怎麼挑、怎麼避免重複、介紹怎麼寫、網站怎麼更新，都由這個 repo 裡的規則決定。
