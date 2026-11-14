@@ -1,0 +1,16 @@
+{
+  "name": "paper-atlas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A paper library with a knowledge graph, operated by agents.",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "atlas": "node scripts/atlas.mjs",
+    "validate": "node scripts/atlas.mjs validate",
+    "build": "node scripts/atlas.mjs build",
+    "serve": "node scripts/atlas.mjs serve",
+    "mcp": "node mcp/server.mjs",
+    "test": "node scripts/atlas.mjs validate && node mcp/selftest.mjs"
+  }
+}

@@ -1,0 +1,17 @@
+name: Validate library
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Fails on format errors, duplicate papers, and relations to papers that do not exist.
+      - run: node scripts/atlas.mjs validate
+      - run: node scripts/atlas.mjs build

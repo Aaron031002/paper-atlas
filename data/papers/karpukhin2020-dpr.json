@@ -1,0 +1,108 @@
+{
+  "id": "karpukhin2020-dpr",
+  "title": "Dense Passage Retrieval for Open-Domain Question Answering",
+  "authors": [
+    "Vladimir Karpukhin",
+    "Barlas Oğuz",
+    "Sewon Min",
+    "Patrick Lewis",
+    "Ledell Wu",
+    "Sergey Edunov",
+    "Danqi Chen",
+    "Wen-tau Yih"
+  ],
+  "venue": "EMNLP 2020",
+  "year": 2020,
+  "published": "2020-04-10",
+  "added_at": "2026-11-14T16:04:38.512Z",
+  "added_by": "seed",
+  "ids": {
+    "arxiv": "2004.04906",
+    "doi": "10.18653/v1/2020.emnlp-main.550"
+  },
+  "links": {
+    "paper": "https://arxiv.org/abs/2004.04906",
+    "pdf": "https://arxiv.org/pdf/2004.04906",
+    "code": "https://github.com/facebookresearch/DPR"
+  },
+  "category": "retrieval",
+  "tags": [
+    "dense-retrieval",
+    "open-domain-qa",
+    "dual-encoder",
+    "contrastive-learning"
+  ],
+  "one_liner": "只用問答配對訓練的雙塔 BERT 稠密檢索器，top-20 檢索準確率大幅超過 BM25。",
+  "intro": {
+    "tldr": [
+      "DPR 用兩個 BERT encoder 分別把問題與段落編碼成向量，以內積作為相關性分數。",
+      "不需要額外的預訓練，只靠現有的問題與段落配對加上 in-batch negatives 就能訓練。",
+      "在多個開放領域問答資料集上，top-20 段落檢索準確率比 Lucene-BM25 高出 9 到 19 個百分點。"
+    ],
+    "problem": "開放領域問答要先從大量文件中找出可能含有答案的段落。當時實務上的標準做法是 TF-IDF 或 BM25 這類稀疏向量方法，只能比對字面上相同的詞，遇到同義改寫就失效。稠密向量理論上可以捕捉語意，但普遍認為要學到好的稠密表示需要大量標註資料或專門的預訓練，因此一直沒能在這個任務上勝過 BM25。",
+    "method": "DPR 採用 **dual-encoder**：一個 BERT 編碼問題、另一個 BERT 編碼段落，取 `[CLS]` 向量，相似度為兩者內積。\n\n- 訓練目標是讓問題與其正確段落的相似度高於負樣本（negative log-likelihood）。\n- 負樣本的選擇是關鍵：**in-batch negatives**（同一個 batch 內其他問題的正確段落）再加上每題一個 BM25 檢索到但不含答案的 hard negative，效果最好。\n- 推論時先離線把約 2,100 萬個 Wikipedia 段落編碼並以 FAISS 建立索引，查詢時做最大內積搜尋。",
+    "contributions": [
+      "證明在適當的訓練設定下，只微調問題與段落 encoder 就足以大幅勝過 BM25。",
+      "系統性分析負樣本選擇、訓練資料量與相似度函數對檢索品質的影響。",
+      "驗證檢索準確率的提升確實會轉換成端到端問答準確率的提升。"
+    ],
+    "results": "在 Natural Questions、TriviaQA、WebQuestions、CuratedTREC 上，DPR 的 top-20 檢索準確率比 Lucene-BM25 高出 **9 到 19 個百分點**（絕對值），搭配 reader 後在多個開放領域問答 benchmark 達到當時最佳成績。只用 1,000 筆訓練資料時就已經超過 BM25。SQuAD 是例外：BM25 在該資料集上表現較好。",
+    "limitations": "作者解釋 SQuAD 上落後的原因：標註者看著段落寫問題，問題與段落的字面重疊度高，對 BM25 有利，而且資料只取自少數 Wikipedia 文章。另外，建立稠密索引需要的運算遠多於建立倒排索引。對於含有罕見專有名詞、需要精確字面比對的查詢，稀疏方法仍有優勢，作者因此也實驗了兩者的混合。",
+    "takeaways": "DPR 讓稠密檢索成為實用選項，[[lewis2020-rag]] 直接拿它當 retriever。它對負樣本的分析（in-batch 加 hard negative）成為後續檢索模型訓練的標準配方；若研究題目涉及 RAG 的檢索端，這篇是合理的 baseline 起點。"
+  },
+  "relations": [
+    {
+      "target": "devlin2018-bert",
+      "type": "builds-on",
+      "note": "問題與段落的 encoder 都是預訓練的 BERT，只做微調。"
+    }
+  ],
+  "references": [
+    {
+      "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+      "authors": "Devlin et al.",
+      "year": 2019,
+      "arxiv": "1810.04805"
+    },
+    {
+      "title": "Reading Wikipedia to Answer Open-Domain Questions",
+      "authors": "Chen, Fisch, Weston, Bordes",
+      "year": 2017,
+      "arxiv": "1704.00051"
+    },
+    {
+      "title": "Latent Retrieval for Weakly Supervised Open Domain Question Answering",
+      "authors": "Lee, Chang, Toutanova",
+      "year": 2019,
+      "arxiv": "1906.00300"
+    },
+    {
+      "title": "REALM: Retrieval-Augmented Language Model Pre-Training",
+      "authors": "Guu et al.",
+      "year": 2020,
+      "arxiv": "2002.08909"
+    },
+    {
+      "title": "Billion-scale similarity search with GPUs",
+      "authors": "Johnson, Douze, Jégou",
+      "year": 2017,
+      "arxiv": "1702.08734"
+    },
+    {
+      "title": "Natural Questions: A Benchmark for Question Answering Research",
+      "authors": "Kwiatkowski et al.",
+      "year": 2019
+    },
+    {
+      "title": "The Probabilistic Relevance Framework: BM25 and Beyond",
+      "authors": "Robertson, Zaragoza",
+      "year": 2009
+    }
+  ],
+  "references_complete": false,
+  "source": {
+    "found_via": "arxiv",
+    "query": "seed: foundational papers",
+    "retrieved_at": "2026-11-15"
+  }
+}

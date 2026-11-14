@@ -1,0 +1,98 @@
+{
+  "id": "wei2022-chain-of-thought",
+  "title": "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models",
+  "authors": [
+    "Jason Wei",
+    "Xuezhi Wang",
+    "Dale Schuurmans",
+    "Maarten Bosma",
+    "Brian Ichter",
+    "Fei Xia",
+    "Ed H. Chi",
+    "Quoc V. Le",
+    "Denny Zhou"
+  ],
+  "venue": "NeurIPS 2022",
+  "year": 2022,
+  "published": "2022-01-28",
+  "added_at": "2026-11-14T16:04:36.355Z",
+  "added_by": "seed",
+  "ids": {
+    "arxiv": "2201.11903"
+  },
+  "links": {
+    "paper": "https://arxiv.org/abs/2201.11903",
+    "pdf": "https://arxiv.org/pdf/2201.11903"
+  },
+  "category": "reasoning-prompting",
+  "tags": [
+    "in-context-learning",
+    "few-shot",
+    "reasoning",
+    "prompting"
+  ],
+  "one_liner": "在 few-shot 範例中寫出中間推理步驟，大模型的算術、常識與符號推理就明顯變好。",
+  "intro": {
+    "tldr": [
+      "Chain-of-thought（CoT）prompting：few-shot 範例不只給答案，還示範一步步的推理過程。",
+      "不需要微調、不改模型，就能提升算術、常識與符號推理任務的表現。",
+      "這種能力隨模型規模浮現：小模型用 CoT 沒有幫助，夠大的模型才有明顯增益。"
+    ],
+    "problem": "單純放大語言模型，在數學應用題、多步常識推理、符號操作這類任務上進步有限。先前有兩條路：一是訓練或微調模型產生自然語言的推理過程，但需要大量人工撰寫的 rationale；二是標準的 few-shot prompting，雖然免訓練，但在需要推理的任務上效果差。作者想結合兩者的優點。",
+    "method": "標準 few-shot prompting 的範例是 ⟨輸入, 輸出⟩。CoT 把每個範例改成 **⟨輸入, 推理過程, 輸出⟩**，其中推理過程是一串導向答案的自然語言中間步驟。模型看到這樣的示範後，面對新問題也會先產生推理步驟再給答案。\n\n作者為每類任務手寫少量範例（算術任務用 8 個），在 GPT-3、LaMDA、PaLM 等多個模型上，於三類任務進行評測：算術推理（如 GSM8K、SVAMP）、常識推理（如 CSQA、StrategyQA）、符號推理（末字母串接、擲硬幣）。",
+    "contributions": [
+      "提出 chain-of-thought prompting 這個簡單、不需訓練的提示方法。",
+      "在三類推理任務、多個大型語言模型上驗證其效果。",
+      "以消融實驗排除「只是多了一些 token」或「只是把算式寫出來」等替代解釋。",
+      "對模型產生的推理鏈做人工錯誤分析。"
+    ],
+    "results": "CoT 在三類任務上都優於標準 prompting，增益在需要多步推理的題目上最明顯。PaLM 540B 只用 8 個 CoT 範例，就在數學應用題資料集 GSM8K 上達到當時最佳準確率，超過微調過並搭配 verifier 的 GPT-3。符號推理實驗顯示 CoT 能讓模型推廣到比範例更長的輸入。增益對不同標註者撰寫的範例、不同的範例組合都相當穩健。",
+    "limitations": "作者明確指出：CoT 模仿了人類推理的形式，但這不代表模型內部真的在「推理」；產生的推理鏈不保證正確，可能導出對的或錯的答案；CoT 只在大模型上有效，實際部署成本高；若要把這種做法延伸到微調，人工撰寫大量推理鏈的成本很高。",
+    "takeaways": "CoT 開啟了「讓模型把思考過程寫出來」的整條研究線。[[yao2022-react]] 指出它的推理完全封閉在模型內部、無法取得外部資訊，因而加入行動與觀察。做推理相關研究時，CoT 幾乎是必比的 baseline。"
+  },
+  "relations": [
+    {
+      "target": "brown2020-gpt3",
+      "type": "extends",
+      "note": "沿用 GPT-3 展示的 few-shot prompting，把範例從「輸入→答案」擴充為包含中間推理步驟。"
+    }
+  ],
+  "references": [
+    {
+      "title": "Language Models are Few-Shot Learners",
+      "authors": "Brown et al.",
+      "year": 2020,
+      "arxiv": "2005.14165"
+    },
+    {
+      "title": "Program Induction by Rationale Generation: Learning to Solve and Explain Algebraic Word Problems",
+      "authors": "Ling, Yogatama, Dyer, Blunsom",
+      "year": 2017,
+      "arxiv": "1705.04146"
+    },
+    {
+      "title": "Training Verifiers to Solve Math Word Problems",
+      "authors": "Cobbe et al.",
+      "year": 2021,
+      "arxiv": "2110.14168"
+    },
+    {
+      "title": "Show Your Work: Scratchpads for Intermediate Computation with Language Models",
+      "authors": "Nye et al.",
+      "year": 2021,
+      "arxiv": "2112.00114"
+    },
+    {
+      "title": "PaLM: Scaling Language Modeling with Pathways",
+      "authors": "Chowdhery et al.",
+      "year": 2022,
+      "arxiv": "2204.02311"
+    }
+  ],
+  "references_complete": false,
+  "source": {
+    "found_via": "arxiv",
+    "query": "seed: foundational papers",
+    "retrieved_at": "2026-11-15"
+  }
+}

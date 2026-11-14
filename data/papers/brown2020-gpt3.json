@@ -1,0 +1,135 @@
+{
+  "id": "brown2020-gpt3",
+  "title": "Language Models are Few-Shot Learners",
+  "authors": [
+    "Tom B. Brown",
+    "Benjamin Mann",
+    "Nick Ryder",
+    "Melanie Subbiah",
+    "Jared Kaplan",
+    "Prafulla Dhariwal",
+    "Arvind Neelakantan",
+    "Pranav Shyam",
+    "Girish Sastry",
+    "Amanda Askell",
+    "Sandhini Agarwal",
+    "Ariel Herbert-Voss",
+    "Gretchen Krueger",
+    "Tom Henighan",
+    "Rewon Child",
+    "Aditya Ramesh",
+    "Daniel M. Ziegler",
+    "Jeffrey Wu",
+    "Clemens Winter",
+    "Christopher Hesse",
+    "Mark Chen",
+    "Eric Sigler",
+    "Mateusz Litwin",
+    "Scott Gray",
+    "Benjamin Chess",
+    "Jack Clark",
+    "Christopher Berner",
+    "Sam McCandlish",
+    "Alec Radford",
+    "Ilya Sutskever",
+    "Dario Amodei"
+  ],
+  "venue": "NeurIPS 2020",
+  "year": 2020,
+  "published": "2020-05-28",
+  "added_at": "2026-11-14T16:04:35.280Z",
+  "added_by": "seed",
+  "ids": {
+    "arxiv": "2005.14165"
+  },
+  "links": {
+    "paper": "https://arxiv.org/abs/2005.14165",
+    "pdf": "https://arxiv.org/pdf/2005.14165"
+  },
+  "category": "pretraining",
+  "tags": [
+    "pretraining",
+    "in-context-learning",
+    "few-shot",
+    "scaling"
+  ],
+  "one_liner": "175B 參數的 GPT-3 顯示：模型夠大時，只在 prompt 裡給幾個範例就能做新任務。",
+  "intro": {
+    "tldr": [
+      "訓練 175B 參數的自迴歸語言模型 GPT-3，參數量是先前非稀疏語言模型的 10 倍。",
+      "所有任務都不做梯度更新，只用文字描述任務並在 prompt 中放入少量範例（in-context learning）。",
+      "在許多資料集上接近甚至追上微調過的模型，但也明確列出 few-shot 仍然表現不佳的資料集。"
+    ],
+    "problem": "「預訓練 + 微調」雖然有效，但每個新任務仍需要數千到數萬筆標註資料。相對地，人類通常只要幾個範例或一句說明就能上手新的語言任務。作者要檢驗的假設是：只要把語言模型做得夠大，是否就能在**不更新任何參數**的情況下，靠 prompt 裡的少量示範完成任務？",
+    "method": "GPT-3 沿用 GPT-2 的 decoder-only Transformer 架構，放大到 175B 參數，並另外訓練 7 個較小的模型以觀察規模的影響。評測時分成三種設定，全部**不做梯度更新**：\n\n- **Zero-shot**：只給任務的自然語言描述。\n- **One-shot**：描述加上一個範例。\n- **Few-shot**：描述加上 context window 放得下的多個範例（通常 10 到 100 個）。\n\n作者另外量測了訓練資料與測試集重疊（data contamination）對結果的影響。",
+    "contributions": [
+      "證明 in-context learning 的能力會隨模型規模穩定提升。",
+      "以大量任務系統性比較 zero-shot、one-shot、few-shot 三種設定。",
+      "提出並分析在網路規模語料上訓練時的測試集污染問題。",
+      "討論濫用、偏見與能源消耗等更廣泛的影響。"
+    ],
+    "results": "GPT-3 在翻譯、問答、克漏字等任務表現強勁，也能完成需要臨場推理或領域適應的任務，例如重組字母、在句子中使用新造的詞、三位數算術。它產生的新聞文章，人類評估者難以分辨是否為機器所寫。規模較小的模型在 few-shot 設定下明顯較弱，zero-shot 與 few-shot 的差距隨模型變大而拉開。",
+    "limitations": "作者列出多項限制：長篇生成會出現重複、前後矛盾；在部分自然語言推論與閱讀理解資料集上 few-shot 仍明顯落後；單向的自迴歸架構在需要雙向比對的任務上吃虧；預訓練的樣本效率遠低於人類；推論成本高；模型的決策不易解釋，且會反映訓練資料中的偏見。",
+    "takeaways": "這篇把研究重心從「怎麼微調」轉向「怎麼下 prompt」，[[wei2022-chain-of-thought]] 與 [[yao2022-react]] 都是在 few-shot prompting 的框架上發展出來的。它列出的失敗案例與 contamination 分析，至今仍是設計 LLM 評測時的重要參考。"
+  },
+  "relations": [
+    {
+      "target": "vaswani2017-attention",
+      "type": "builds-on",
+      "note": "GPT-3 是放大到 175B 參數的 decoder-only Transformer。"
+    },
+    {
+      "target": "devlin2018-bert",
+      "type": "alternative-to",
+      "note": "BERT 走「預訓練後逐任務微調」；GPT-3 主張不更新參數、只靠 prompt 內的範例。"
+    }
+  ],
+  "references": [
+    {
+      "title": "Attention Is All You Need",
+      "authors": "Vaswani et al.",
+      "year": 2017,
+      "arxiv": "1706.03762"
+    },
+    {
+      "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+      "authors": "Devlin et al.",
+      "year": 2018,
+      "arxiv": "1810.04805"
+    },
+    {
+      "title": "Language Models are Unsupervised Multitask Learners",
+      "authors": "Radford et al.",
+      "year": 2019
+    },
+    {
+      "title": "Improving Language Understanding by Generative Pre-Training",
+      "authors": "Radford, Narasimhan, Salimans, Sutskever",
+      "year": 2018
+    },
+    {
+      "title": "Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer",
+      "authors": "Raffel et al.",
+      "year": 2019,
+      "arxiv": "1910.10683"
+    },
+    {
+      "title": "RoBERTa: A Robustly Optimized BERT Pretraining Approach",
+      "authors": "Liu et al.",
+      "year": 2019,
+      "arxiv": "1907.11692"
+    },
+    {
+      "title": "Scaling Laws for Neural Language Models",
+      "authors": "Kaplan et al.",
+      "year": 2020,
+      "arxiv": "2001.08361"
+    }
+  ],
+  "references_complete": false,
+  "source": {
+    "found_via": "arxiv",
+    "query": "seed: foundational papers",
+    "retrieved_at": "2026-11-15"
+  }
+}

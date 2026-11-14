@@ -1,0 +1,105 @@
+{
+  "id": "devlin2018-bert",
+  "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+  "authors": [
+    "Jacob Devlin",
+    "Ming-Wei Chang",
+    "Kenton Lee",
+    "Kristina Toutanova"
+  ],
+  "venue": "NAACL 2019",
+  "year": 2019,
+  "published": "2018-10-11",
+  "added_at": "2026-11-14T16:04:34.205Z",
+  "added_by": "seed",
+  "ids": {
+    "arxiv": "1810.04805",
+    "doi": "10.18653/v1/N19-1423"
+  },
+  "links": {
+    "paper": "https://arxiv.org/abs/1810.04805",
+    "pdf": "https://arxiv.org/pdf/1810.04805",
+    "code": "https://github.com/google-research/bert"
+  },
+  "category": "pretraining",
+  "tags": [
+    "transformer",
+    "pretraining",
+    "masked-language-model",
+    "fine-tuning"
+  ],
+  "one_liner": "用 masked LM 預訓練雙向 Transformer encoder，再微調到各種理解任務。",
+  "intro": {
+    "tldr": [
+      "以 masked language model（MLM）讓每一層都能同時看到左右文，預訓練出深層雙向表示。",
+      "預訓練好的模型只要加一層輸出層再微調，就能用在分類、問答、序列標註等任務。",
+      "在 11 個 NLP 任務刷新當時最佳成績，GLUE 分數達 80.5%。"
+    ],
+    "problem": "既有的預訓練語言表示大多是**單向**的：GPT 式的由左到右語言模型，每個 token 只能看到前文；ELMo 則是把兩個獨立訓練的單向模型淺層拼接。對問答這類需要同時參考前後文的 token 級任務，這是明顯的限制。但標準語言模型若直接改成雙向，每個字會間接「看到自己」，訓練目標就失去意義。",
+    "method": "BERT 是多層雙向 Transformer encoder，使用兩個預訓練任務：\n\n- **Masked LM**：隨機選出 15% 的 token，多數替換成 `[MASK]`，讓模型根據左右文預測原本的字。\n- **Next Sentence Prediction（NSP）**：判斷句子 B 是否真的接在句子 A 後面，讓模型學到句子間關係。\n\n預訓練語料是 BooksCorpus 與英文 Wikipedia。下游任務時，把任務輸入包成 `[CLS] A [SEP] B [SEP]` 的形式，**所有參數一起微調**。論文提供 BERT-base（110M 參數）與 BERT-large（340M 參數）兩種規模。",
+    "contributions": [
+      "說明雙向預訓練對語言表示的重要性，並以 MLM 讓深層雙向訓練可行。",
+      "建立「預訓練一次、各任務微調」的統一做法，大幅減少為各任務設計專屬架構的需要。",
+      "在句子級與 token 級共 11 個任務達到當時最佳成績。"
+    ],
+    "results": "GLUE 分數 **80.5%**（絕對提升 7.7 個百分點）、MultiNLI 準確率 86.7%、SQuAD v1.1 測試集 F1 **93.2**、SQuAD v2.0 測試集 F1 83.1。消融實驗顯示：拿掉 NSP 或改成單向模型都會讓成績下降，模型愈大成績愈好，即使下游資料很少也是如此。",
+    "limitations": "作者指出 `[MASK]` 只出現在預訓練、不出現在微調，造成兩階段不一致，因此並非所有被選中的 token 都真的換成 `[MASK]`；另外每個 batch 只有 15% 的 token 被預測，收斂比單向語言模型慢。以下為讀者觀察、非作者自述：encoder-only 的架構不適合直接做文字生成，而每個下游任務都要保存一份完整微調後的模型。",
+    "takeaways": "BERT 確立了「預訓練 + 全參數微調」的典範，之後的兩條路線都是對它的回應：[[brown2020-gpt3]] 主張不更新參數、只靠 prompt；[[hu2021-lora]] 則保留微調但只訓練極少量參數。它的 encoder 也直接成為 [[karpukhin2020-dpr]] 這類稠密檢索器的基礎。"
+  },
+  "relations": [
+    {
+      "target": "vaswani2017-attention",
+      "type": "builds-on",
+      "note": "BERT 的模型主體就是 Transformer 的 encoder，架構幾乎未改。"
+    }
+  ],
+  "references": [
+    {
+      "title": "Attention Is All You Need",
+      "authors": "Vaswani et al.",
+      "year": 2017,
+      "arxiv": "1706.03762"
+    },
+    {
+      "title": "Deep contextualized word representations",
+      "authors": "Peters et al.",
+      "year": 2018,
+      "arxiv": "1802.05365"
+    },
+    {
+      "title": "Improving Language Understanding by Generative Pre-Training",
+      "authors": "Radford, Narasimhan, Salimans, Sutskever",
+      "year": 2018
+    },
+    {
+      "title": "Universal Language Model Fine-tuning for Text Classification",
+      "authors": "Howard, Ruder",
+      "year": 2018,
+      "arxiv": "1801.06146"
+    },
+    {
+      "title": "GLUE: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding",
+      "authors": "Wang et al.",
+      "year": 2018,
+      "arxiv": "1804.07461"
+    },
+    {
+      "title": "SQuAD: 100,000+ Questions for Machine Comprehension of Text",
+      "authors": "Rajpurkar, Zhang, Lopyrev, Liang",
+      "year": 2016,
+      "arxiv": "1606.05250"
+    },
+    {
+      "title": "Google's Neural Machine Translation System: Bridging the Gap between Human and Machine Translation",
+      "authors": "Wu et al.",
+      "year": 2016,
+      "arxiv": "1609.08144"
+    }
+  ],
+  "references_complete": false,
+  "source": {
+    "found_via": "arxiv",
+    "query": "seed: foundational papers",
+    "retrieved_at": "2026-11-15"
+  }
+}

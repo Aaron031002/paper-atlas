@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "paper-atlas": {
+      "command": "node",
+      "args": ["mcp/server.mjs"]
+    }
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "id": "yao2022-react",
+  "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
+  "authors": [
+    "Shunyu Yao",
+    "Jeffrey Zhao",
+    "Dian Yu",
+    "Nan Du",
+    "Izhak Shafran",
+    "Karthik Narasimhan",
+    "Yuan Cao"
+  ],
+  "venue": "ICLR 2023",
+  "year": 2023,
+  "published": "2022-10-06",
+  "added_at": "2026-11-14T16:04:37.431Z",
+  "added_by": "seed",
+  "ids": {
+    "arxiv": "2210.03629"
+  },
+  "links": {
+    "paper": "https://arxiv.org/abs/2210.03629",
+    "pdf": "https://arxiv.org/pdf/2210.03629",
+    "project": "https://react-lm.github.io"
+  },
+  "category": "agents",
+  "tags": [
+    "reasoning",
+    "prompting",
+    "tool-use",
+    "agents"
+  ],
+  "one_liner": "讓 LLM 交錯輸出「想法」與「行動」，邊推理邊查資料或操作環境，是多數 agent 迴圈的原型。",
+  "intro": {
+    "tldr": [
+      "ReAct 讓模型交錯產生推理（thought）與任務行動（action），並把環境回傳的觀察（observation）接回 context。",
+      "推理幫助模型規劃、追蹤與修正行動；行動讓模型能向外部取得資訊，減少憑空捏造。",
+      "在 ALFWorld 與 WebShop 上，只用一到兩個範例就比模仿學習與強化學習方法的成功率高出 34 與 10 個百分點。"
+    ],
+    "problem": "在此之前，LLM 的「推理」（例如 chain-of-thought）與「行動」（例如產生行動計畫）大多被分開研究。只推理的方法完全依賴模型內部知識，無法查證或更新資訊，容易出現 hallucination 與錯誤逐步累積；只行動的方法缺少高階的規劃與反思，遇到例外狀況難以調整。",
+    "method": "ReAct 把 agent 的行動空間擴充為「原本的行動 + 語言」。語言空間中的行動稱為 **thought**，不影響外部環境，只用來分解目標、整理觀察、決定下一步。prompt 中放入少量人工撰寫的「thought → action → observation」軌跡作為範例，模型即依此格式逐步解題。\n\n- 知識密集任務（HotpotQA、FEVER）：行動是對 Wikipedia API 的 `search`、`lookup` 與 `finish`。\n- 決策任務（ALFWorld、WebShop）：行動是環境本身的指令，thought 只在需要時稀疏出現。",
+    "contributions": [
+      "提出把推理與行動整合在同一個 prompting 框架的 ReAct。",
+      "在問答、事實查核、文字遊戲、網頁購物四種任務上，與只推理、只行動的 baseline 做對照實驗。",
+      "分析推理與行動各自的失敗型態，並說明兩者如何互補。",
+      "初步的微調實驗顯示 ReAct 格式的軌跡也適合拿來訓練較小的模型。"
+    ],
+    "results": "在 HotpotQA 與 FEVER 上，ReAct 優於只產生行動的版本，也比 chain-of-thought 更少出現捏造的內容；把 ReAct 與 CoT 的 self-consistency 版本結合、讓兩者互相備援時成績最好。在 ALFWorld 與 WebShop 上，只用一到兩個 in-context 範例的 ReAct，成功率分別比模仿學習或強化學習方法高出 **34** 與 **10** 個百分點（絕對值）。產生的軌跡可讀性高，人可以直接檢查甚至修改 thought 來修正行為。",
+    "limitations": "作者指出：在純 prompting 設定下，能放進 context 的範例有限，複雜任務的示範很快超過長度上限；檢索到沒有幫助的結果時，模型的推理容易被帶偏而難以恢復；模型有時會重複先前的 thought 與 action 而陷入迴圈。在 HotpotQA 上，單獨使用 ReAct 的成績並未超過 CoT。",
+    "takeaways": "後來的工具呼叫與 agent 框架，基本上都是 ReAct 迴圈的變形。它同時示範了一種研究寫法：把方法與「只有其中一半」的 baseline 做嚴格對照，並對失敗案例做人工分類。若研究題目涉及 agent 的可靠性，這篇列出的失敗型態是很好的起點。"
+  },
+  "relations": [
+    {
+      "target": "wei2022-chain-of-thought",
+      "type": "extends",
+      "note": "CoT 的推理封閉在模型內部；ReAct 在推理步驟之間加入對外部環境的行動與觀察。"
+    }
+  ],
+  "references": [
+    {
+      "title": "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models",
+      "authors": "Wei et al.",
+      "year": 2022,
+      "arxiv": "2201.11903"
+    },
+    {
+      "title": "Language Models are Few-Shot Learners",
+      "authors": "Brown et al.",
+      "year": 2020,
+      "arxiv": "2005.14165"
+    },
+    {
+      "title": "Self-Consistency Improves Chain of Thought Reasoning in Language Models",
+      "authors": "Wang et al.",
+      "year": 2022,
+      "arxiv": "2203.11171"
+    },
+    {
+      "title": "PaLM: Scaling Language Modeling with Pathways",
+      "authors": "Chowdhery et al.",
+      "year": 2022,
+      "arxiv": "2204.02311"
+    },
+    {
+      "title": "Do As I Can, Not As I Say: Grounding Language in Robotic Affordances",
+      "authors": "Ahn et al.",
+      "year": 2022,
+      "arxiv": "2204.01691"
+    },
+    {
+      "title": "Inner Monologue: Embodied Reasoning through Planning with Language Models",
+      "authors": "Huang et al.",
+      "year": 2022,
+      "arxiv": "2207.05608"
+    },
+    {
+      "title": "WebGPT: Browser-assisted question-answering with human feedback",
+      "authors": "Nakano et al.",
+      "year": 2021,
+      "arxiv": "2112.09332"
+    },
+    {
+      "title": "ALFWorld: Aligning Text and Embodied Environments for Interactive Learning",
+      "authors": "Shridhar et al.",
+      "year": 2020,
+      "arxiv": "2010.03768"
+    },
+    {
+      "title": "WebShop: Towards Scalable Real-World Web Interaction with Grounded Language Agents",
+      "authors": "Yao et al.",
+      "year": 2022,
+      "arxiv": "2207.01206"
+    },
+    {
+      "title": "HotpotQA: A Dataset for Diverse, Explainable Multi-hop Question Answering",
+      "authors": "Yang et al.",
+      "year": 2018,
+      "arxiv": "1809.09600"
+    },
+    {
+      "title": "FEVER: a large-scale dataset for Fact Extraction and VERification",
+      "authors": "Thorne et al.",
+      "year": 2018,
+      "arxiv": "1803.05355"
+    }
+  ],
+  "references_complete": false,
+  "source": {
+    "found_via": "arxiv",
+    "query": "seed: foundational papers",
+    "retrieved_at": "2026-11-15"
+  }
+}
