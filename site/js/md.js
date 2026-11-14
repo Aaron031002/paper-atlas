@@ -111,7 +111,10 @@ export function renderMarkdown(source, papers, headingBase = 3) {
       i < lines.length && lines[i].trim() && !lines[i].startsWith('```') && !/^#{1,4}\s/.test(lines[i]) &&
       !lines[i].startsWith('>') && !isBullet(lines[i]) && !isNumbered(lines[i])
     ) { para.push(lines[i].trim()); i += 1; }
-    html.push(`<p>${inline(para.join(' '), papers)}</p>`);
+    // Lines of one paragraph are joined with a space, except between two CJK characters.
+    const cjk = /[\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]/;
+    const text = para.reduce((acc, part) => (acc && cjk.test(acc.slice(-1)) && cjk.test(part[0]) ? acc + part : acc ? `${acc} ${part}` : part), '');
+    html.push(`<p>${inline(text, papers)}</p>`);
   }
   return html.join('\n');
 }
