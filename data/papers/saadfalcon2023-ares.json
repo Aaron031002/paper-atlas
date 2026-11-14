@@ -1,0 +1,148 @@
+{
+  "id": "saadfalcon2023-ares",
+  "title": "ARES: An Automated Evaluation Framework for Retrieval-Augmented Generation Systems",
+  "authors": [
+    "Jon Saad-Falcon",
+    "Omar Khattab",
+    "Christopher Potts",
+    "Matei Zaharia"
+  ],
+  "venue": "NAACL 2024",
+  "year": 2024,
+  "published": "2023-11-16",
+  "added_at": "2026-11-14T17:44:42.607Z",
+  "added_by": "claude-subagent",
+  "ids": {
+    "arxiv": "2311.09476",
+    "doi": "10.18653/v1/2024.naacl-long.20"
+  },
+  "links": {
+    "paper": "https://arxiv.org/abs/2311.09476",
+    "pdf": "https://arxiv.org/pdf/2311.09476",
+    "code": "https://github.com/stanford-futuredata/ARES",
+    "project": null
+  },
+  "category": "evaluation",
+  "tags": [
+    "retrieval-augmented-generation",
+    "rag-evaluation",
+    "llm-as-judge",
+    "faithfulness",
+    "synthetic-data"
+  ],
+  "one_liner": "用合成資料微調輕量 LLM 評審，再以少量人工標註做 PPI 校正，自動為 RAG 系統評分與排名。",
+  "intro": {
+    "tldr": [
+      "ARES 從三個面向評估 RAG 系統：context relevance、answer faithfulness、answer relevance。",
+      "以 FLAN-T5 XXL 從領域語料合成正負例，微調 DeBERTa-v3-Large 作為各面向的評審，再用約 150 筆以上的人工標註透過 prediction-powered inference（PPI）校正並給出信賴區間。",
+      "在 KILT 與 SuperGLUE 的六個資料集上，ARES 對 RAG 系統的排名比 RAGAS 更接近正確排名，Kendall's tau 平均高出 0.065（context relevance）與 0.132（answer relevance）。"
+    ],
+    "problem": "評估 RAG 系統傳統上依賴人工標註的查詢與答案，成本高，換一個領域就要重做。以 LLM 直接當評審的做法（例如 RAGAS）使用固定的 few-shot prompt，沒有針對特定領域調整，也不提供統計上的不確定性。作者想要一個只需少量人工標註、能適應新領域、並能為評分附上信賴區間的自動評測框架，用來比較同一領域中多個 RAG 系統的好壞。",
+    "method": "**輸入**：領域內的段落集合、約 150 筆以上的人工偏好驗證集，以及五個以上的領域內查詢與答案範例（作為合成資料的 few-shot prompt）。\n\n**三個評分面向**\n\n- Context relevance：檢索到的段落是否有助於回答查詢。\n- Answer faithfulness：答案是否以檢索段落為依據，而非幻覺。\n- Answer relevance：答案是否回應了查詢與段落。\n\n**步驟**\n\n1. **合成訓練資料**：用 FLAN-T5 XXL 從語料段落產生查詢與答案；若 retriever 無法把原段落排在第一，該查詢視為低品質而丟棄。負例分弱、強兩種，數量各半：弱負例是隨機的無關段落或取自其他段落的答案；強負例是同一份文件的其他段落（沒有時用 BM25 的 top-10 相似段落），或由 FLAN-T5 XXL 以 few-shot prompt 產生的矛盾答案。\n2. **微調評審**：以 DeBERTa-v3-Large 加上二元分類頭，三個面向各訓練一個評審；cross-entropy loss、Adam、learning rate 5e-6、batch size 32，驗證 loss 連續三個 epoch 沒有改善就停止。\n3. **PPI 校正**：用人工標註的驗證集估計評審的誤差並修正預測，得到每個 RAG 系統在各面向的 95% 信賴區間，再依區間中點為系統排名。",
+    "contributions": [
+      "提出為每個 RAG 面向自動產生領域專屬 LLM 評審的評測流程，只需少量人工標註。",
+      "把 prediction-powered inference 引入 RAG 評測，讓分數附上信賴區間。",
+      "在多個知識密集任務上以實驗顯示其排名平均比 RAGAS 與 GPT-3.5 few-shot 評審更準確，並公開程式碼與資料。"
+    ],
+    "results": "**設定**：在 KILT 的 NQ、HotpotQA、FEVER、WoW 與 SuperGLUE 的 MultiRC、ReCoRD（改成開放領域版本）上，從驗證集取樣出成功率已知的正負例，建立 9 個「mock RAG 系統」，成功率從 70% 到 90%、每 2.5 個百分點一個，因此正確排名已知。以 Kendall's tau 衡量排名是否正確（作者以 tau 大於 0.9 視為成功）。比較對象為 RAGAS（0.0.18 版）、使用 PPI 與 300 筆人工標註的 GPT-3.5 few-shot 評審，以及每個系統各 150 筆人工標註的抽樣評估。\n\n- **對 RAGAS**：ARES 的 Kendall's tau 平均高出 0.065（context relevance）與 0.132（answer relevance）。例如 NQ 上 ARES 為 0.94 / 1.0，RAGAS 為 0.89 / 0.89；但在 ReCoRD 的 context relevance 上 ARES 為 0.83，低於 RAGAS 的 0.89。\n- **真實 RAG 系統**：在 NQ、WoW、FEVER 上，以 BM25、OpenAI Ada embeddings、ColBERTv2 三種 retriever 搭配 MPT-7b-Instruct、GPT-3.5-Turbo、GPT-4 三種生成模型（另加 DPR + BART 的 RAG 模型）組成系統，ARES 的 Kendall's tau 平均比 RAGAS 高 0.16（context relevance）與 0.15（answer relevance）。\n- **AIS 幻覺率預測**：在 WoW 與 CNN/DM 上，ARES 預測的正例比例分別為 0.478 與 0.835，實際為 0.458 與 0.859，作者稱誤差在 2.5 個百分點以內；評審本身的準確率分別為 62.5% 與 84.0%。\n- **跨領域**：查詢或文件類型改變時（例如 NQ 訓練的評審用在 FEVER、MultiRC、ReCoRD），tau 大多維持在 0.78 到 1.0；但差異大的轉移表現差：跨語言的 XGLUE 0.33、文字轉程式碼的 CodeSearchNet 0.28、抽取式的 T-Rex 0.38。",
+    "limitations": "作者自述的限制：\n\n- 需要約 150 到 300 筆人工標註，且越多越好；標註者通常要熟悉該 RAG 系統的應用領域，法律、醫療、金融等專業領域可能需要專家。\n- 使用的模型需要 GPU，DeBERTa-v3-Large 與 FLAN-T5-XXL 需要約 32GB 記憶體的 GPU。\n- 評測使用的資料集全部是英文。\n\n以下為讀者觀察、非作者自述：主要實驗的「RAG 系統」是依已知成功率取樣出的 mock 系統；以真實 retriever 與 generator 組合驗證排名的實驗（第 5.3 節）只涵蓋 KILT 的 NQ、WoW、FEVER 三個資料集，在其他領域的真實系統上仍需另外驗證；評審是二元分類器，只判斷對或錯，不提供錯誤類型等細部診斷；跨語言、跨任務型態的轉移結果顯示，換到差異大的領域時需要重新合成資料與訓練評審。",
+    "takeaways": "ARES 代表 RAG 評測的「訓練專用評審 + 統計校正」路線，與 RAGAS 這類直接 prompt 大模型當評審的做法形成對比。它把評測拆成 context relevance、faithfulness、answer relevance 三個面向，這套拆法與 [[chen2023-rgb]] 以「能力」拆解 LLM 弱點的做法互補：RGB 問的是生成端在什麼情況下會失敗，ARES 問的是如何在缺少大量標註時比較整個 RAG 系統。做 RAG 研究需要自動評測時，可以借用它的強負例構造方式，以及用 PPI 為 LLM 評審分數附上信賴區間的做法；以 mock 系統的已知排名來驗證評測方法，也是值得參考的實驗設計。"
+  },
+  "relations": [],
+  "references": [
+    {
+      "title": "Prediction-powered inference",
+      "authors": "Angelopoulos et al.",
+      "year": 2023
+    },
+    {
+      "title": "Ragas: Evaluation framework for your retrieval augmented generation (rag) pipelines",
+      "authors": "James, Es",
+      "year": 2023
+    },
+    {
+      "title": "Benchmarking Large Language Models in Retrieval-Augmented Generation",
+      "authors": "Chen et al.",
+      "year": 2023,
+      "arxiv": "2309.01431"
+    },
+    {
+      "title": "KILT: a Benchmark for Knowledge Intensive Language Tasks",
+      "authors": "Petroni et al.",
+      "year": 2021
+    },
+    {
+      "title": "SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems",
+      "authors": "Wang et al.",
+      "year": 2019
+    },
+    {
+      "title": "Measuring Attribution in Natural Language Generation Models",
+      "authors": "Rashkin et al.",
+      "year": 2022
+    },
+    {
+      "title": "Scaling Instruction-Finetuned Language Models",
+      "authors": "Chung et al.",
+      "year": 2022
+    },
+    {
+      "title": "DeBERTaV3: Improving DeBERTa using ELECTRA-Style Pre-Training with Gradient-Disentangled Embedding Sharing",
+      "authors": "He, Gao, Chen",
+      "year": 2021
+    },
+    {
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "authors": "Lewis et al.",
+      "year": 2020,
+      "arxiv": "2005.11401"
+    },
+    {
+      "title": "Dense Passage Retrieval for Open-Domain Question Answering",
+      "authors": "Karpukhin et al.",
+      "year": 2020,
+      "arxiv": "2004.04906"
+    },
+    {
+      "title": "Language Models are Few-Shot Learners",
+      "authors": "Brown et al.",
+      "year": 2020
+    },
+    {
+      "title": "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena",
+      "authors": "Zheng et al.",
+      "year": 2023
+    },
+    {
+      "title": "FActScore: Fine-grained Atomic Evaluation of Factual Precision in Long Form Text Generation",
+      "authors": "Min et al.",
+      "year": 2023
+    },
+    {
+      "title": "Enabling Large Language Models to Generate Text with Citations",
+      "authors": "Gao et al.",
+      "year": 2023
+    },
+    {
+      "title": "Natural Questions: A Benchmark for Question Answering Research",
+      "authors": "Kwiatkowski et al.",
+      "year": 2019
+    },
+    {
+      "title": "HotpotQA: A Dataset for Diverse, Explainable Multi-hop Question Answering",
+      "authors": "Yang et al.",
+      "year": 2018
+    },
+    {
+      "title": "Wizard of Wikipedia: Knowledge-Powered Conversational Agents",
+      "authors": "Dinan et al.",
+      "year": 2018
+    }
+  ],
+  "references_complete": false,
+  "source": {
+    "found_via": "arxiv",
+    "query": "faithfulness evaluation retrieval augmented generation automated framework arXiv",
+    "retrieved_at": "2026-11-15"
+  }
+}

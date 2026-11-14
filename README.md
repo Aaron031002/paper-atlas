@@ -137,6 +137,17 @@ node scripts/atlas.mjs serve        # 在 http://localhost:4173 預覽網站
 
 Agent 需要有上網搜尋與讀取網頁的能力才能找論文，並且需要這個 repo 的 push 權限才能更新網站。
 
+### 網路環境的差別
+
+找論文的品質取決於 agent 所在環境能連到哪裡：
+
+| 環境 | 能做到的事 |
+|---|---|
+| 在你自己的電腦上執行（Claude Code 等） | 可直接呼叫 arXiv 與 Semantic Scholar 的 API：書目資料最準確，拿得到引用數與完整的參考文獻清單。**建議用這種方式找論文。** |
+| 雲端沙箱（例如 claude.ai 的對話） | shell 通常只能連到套件庫與 GitHub，連不到 arXiv；網頁擷取工具只接受搜尋結果裡出現過的連結。仍然可以找論文與讀全文（先搜尋、再擷取結果連結），但拿不到引用數，參考文獻通常只能列出一部分。 |
+
+`find-papers` skill 對兩種環境都有對應的做法，agent 會自己判斷。
+
 ---
 
 ## CLI 指令
@@ -150,6 +161,7 @@ node scripts/atlas.mjs <command> [options]
 | `overview` | 文獻庫概況：領域、分類、篇數、最近加入 |
 | `list [--category id] [--tag t] [--sort …]` | 列出 paper。排序：`added-desc`（預設）、`added-asc`、`published-desc`、`published-asc`、`title` |
 | `show <id>` | 一篇 paper 的完整紀錄 |
+| `neighbors <id>` | 與這篇有關的庫內 paper：雙向的關聯、引用、被引用、共用 tag |
 | `search <關鍵字…> [--limit n]` | 在文獻庫內搜尋 |
 | `context` | 給 LLM 讀的精簡總覽（每篇一行 + 關聯） |
 | `refs [--min-cited-by n] [--cited-by id,id] [--limit n]` | 被庫內 paper 引用、但尚未收錄的文獻 |
@@ -159,7 +171,7 @@ node scripts/atlas.mjs <command> [options]
 | `add <file.json> [--by name] [--override-rejected]` | 驗證 + 去重後加入 |
 | `reject --title "…" --reason "…" [--arxiv id] [--doi id] [--topic "…"]` | 記錄評估後不收錄的論文 |
 | `log-search --topic "…" [--queries "a;b"] [--sources "x,y"] [--added id,id] [--rejected n] [--note "…"]` | 記錄一次搜尋 |
-| `save-advice <file.md> --title "…" [--stage "…"] [--summary "…"] [--publish]` | 儲存研究建議報告 |
+| `save-advice <file.md \| -> --title "…" [--stage "…"] [--summary "…"] [--publish]` | 儲存研究建議報告（`-` 表示從標準輸入讀取） |
 | `validate` | 檢查格式、重複與關聯 |
 | `build` | 驗證後產生 `site/data/` |
 | `serve [--port 4173]` | build 後在本機預覽 |
@@ -182,6 +194,7 @@ node scripts/atlas.mjs <command> [options]
 | `atlas_list_papers` | `list` |
 | `atlas_search` | `search` |
 | `atlas_get_paper` | `show` |
+| `atlas_neighbors` | `neighbors` |
 | `atlas_library_context` | `context` |
 | `atlas_check_duplicate` | `check` |
 | `atlas_add_paper` | `add`（成功後自動 build） |
@@ -258,6 +271,8 @@ MCP server 不執行 git。commit 與 push 由 agent 用 shell 完成。
 | 5 | Hugging Face Papers | 程式碼連結與近期受關注的論文 |
 
 另外，庫內 paper 的參考文獻（`refs` 指令）本身就是候選來源：被多篇已收錄的 paper 引用的文獻，通常值得收錄。
+
+連不到這些來源的 API 時（見「網路環境的差別」），agent 會改用網頁搜尋加上來源名稱查詢，並記錄每篇候選實際來自哪個來源。
 
 **怎麼挑**（`selection`）
 
@@ -406,4 +421,4 @@ node scripts/atlas.mjs serve       # 實際看網站
 
 ### 目前的示範資料
 
-`data/papers/` 裡有 8 篇 AI / NLP 的經典論文（`added_by` 為 `seed`），用來展示格式與圖譜。它們的 `references` 只列了主要參考文獻（`references_complete: false`）。可以保留，也可以請 agent 補齊參考文獻或刪除。
+`data/papers/` 裡有 8 篇 AI / NLP 的經典論文（`added_by` 為 `seed`），用來展示格式與圖譜。它們的內容已逐篇對照原文查證過，但 `references` 只列了主要參考文獻（`references_complete: false`）。可以保留，也可以請 agent 在能連到 Semantic Scholar 的環境補齊參考文獻。

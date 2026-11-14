@@ -42,11 +42,18 @@ description: 依使用者指定的主題或領域，照固定規則到指定來�
 
 **查詢字串**：準備 3 到 5 個，涵蓋主題的英文正式名稱、常見縮寫或同義說法、一個較寬與一個較窄的說法。例如主題「RAG 的評測」：`retrieval-augmented generation evaluation`、`RAG benchmark`、`faithfulness evaluation retrieval augmented`、`attribution evaluation LLM`。
 
-**怎麼查**：優先用來源的 API（`sources[].api`），以你的網頁擷取工具取得；API 無法存取時，用搜尋工具加上來源名稱查詢。至少查前兩個來源；頭兩個來源的結果不足時再往下。
+**怎麼查**：依你所在環境的能力，用下面第一個可行的方式。
+
+1. **能直接連線**（例如在使用者電腦上執行的 agent）：用來源的 API（`sources[].api`），以 `curl` 或網頁擷取工具取得 JSON。這是最準確的方式，也拿得到引用數與完整參考文獻。
+2. **連線受限**（雲端沙箱常見：shell 連不到外部網站，或網頁擷取工具只接受「搜尋結果裡出現過的連結」）：不要自己拼 API 或 arXiv 網址，那會被拒絕，而且重試也沒用。改用搜尋工具查 `<來源名稱> <查詢字串>`（例如 `arXiv RAG evaluation benchmark`、`ACL Anthology retrieval-augmented generation evaluation`），再擷取結果中出現的連結。
+
+不確定自己屬於哪一種時，先試一次方式 1；被拒絕就改用方式 2，不必回報為錯誤。
+
+至少涵蓋前兩個來源；結果不足時再往下。用方式 2 時無法指定「只搜某個來源」，所以改成記下每個候選的頁面實際來自哪個來源，並確保候選不是全部來自同一處。
 
 **滾雪球**：對第 1 步找到的相關庫內 paper，查看「引用它的新論文」（Semantic Scholar 的 citations）與它的參考文獻。這通常比關鍵字搜尋更準。
 
-整理出最多 20 篇的候選清單，每篇記下：標題、arXiv ID 或 DOI、年份、發表場合、引用數、來源。
+整理出最多 20 篇的候選清單，每篇記下：標題、arXiv ID 或 DOI、年份、發表場合、來源，以及查得到時的引用數。引用數查不到就留空，品質改用發表場合與「是否被庫內 paper 引用」來判斷。
 
 ## 3. 去重：每一個候選都要做
 
@@ -64,7 +71,7 @@ node scripts/atlas.mjs check --title "<完整標題>" --arxiv <id> --doi <doi>
 | `in_library`（exit 1） | 已收錄 | 移出清單。不要重寫、不要覆蓋。 |
 | `rejected_before`（exit 2） | 以前評估過、決定不收 | 移出清單，除非使用者這次明確點名要這一篇 |
 
-同一篇論文的 preprint 與正式發表版本算同一篇。若庫內是 preprint 而現在已正式發表，更新既有檔案的 `venue`、`year`、`ids.doi` 即可，不要新增。
+同一篇論文的 preprint 與正式發表版本算同一篇。若庫內是 preprint 而現在已正式發表，更新既有檔案的 `venue`、`year`、`ids.doi` 即可，不要新增。（「只能透過 `add`」這條規則限制的是新增 paper；修改既有檔案的欄位是允許的，改完執行 `validate`。）
 
 去重之後候選不足時，回到第 2 步換查詢字串再找一輪；兩輪之後仍不足，就如實告訴使用者這個主題目前只找到這些。
 
@@ -74,7 +81,7 @@ node scripts/atlas.mjs check --title "<完整標題>" --arxiv <id> --doi <doi>
 
 - **相關性**：讀摘要。論文的主要貢獻要落在使用者的主題內，只有關鍵字重疊的不算。
 - **品質**：`trusted_venues` 清單上的會議或期刊可直接考慮。preprint 需符合 `preprint_rule`（有公開程式碼或可重現的實驗細節、作者群在該主題已有同儕審查成果、或已有足夠引用）。
-- **組合**：依 `recency_mix`，收錄 3 篇以上時，要同時包含近 12 個月的新論文與該主題的奠基之作（若尚未收錄）。不要整批都是同一個研究團隊或同一條技術路線。
+- **組合**：依 `recency_mix`，收錄 3 篇以上時，要同時包含近 12 個月的新論文與該主題的奠基之作（若尚未收錄）。只收 1 到 2 篇時沒有這個要求，優先選品質最確定的，並在回報中說明這批偏新還是偏舊，讓使用者決定下一輪要補哪一邊。不要整批都是同一個研究團隊或同一條技術路線。
 - **排除**：符合 `reject_if` 任何一項的不收。
 
 依「相關性 → 品質 → 對文獻庫的補充程度」排序，取前 N 篇（N 為使用者要的篇數）。
@@ -91,8 +98,10 @@ node scripts/atlas.mjs reject --title "<標題>" --arxiv <id> --reason "<具體�
 
 對每一篇入選的論文：
 
-1. **取得全文**並讀完（arXiv 的 HTML 或 PDF、ACL Anthology 的 PDF、OpenReview）。只讀摘要不可以寫介紹。拿不到全文就 `reject`，原因寫「找不到全文」，換下一個候選遞補。
-2. **取得參考文獻清單**：用 `sources` 中 Semantic Scholar 的 `references_api`；失敗時從 PDF 的 References 一節整理。
+1. **取得全文**並讀完。arXiv 的論文優先讀 HTML 版（`arxiv.org/html/<id>` 或 ar5iv），比 PDF 容易擷取；其次是 ACL Anthology 的 PDF、OpenReview。只讀摘要不可以寫介紹。拿不到全文就 `reject`，原因寫「找不到全文」，換下一個候選遞補。
+
+   分幾次讀：方法、實驗與結果、限制、參考文獻各一次，不要一次要求整篇的摘要。如果你的擷取工具是由另一個模型代為回答頁面內容，它給的數字可能是錯的：請它引用原句或表格的那一列，重要的數字再從另一個版本（HTML 與 PDF）核對一次。**核對不了的數字不要寫進介紹**，改用不含數字但仍然正確的說法。
+2. **取得參考文獻清單**：能連線時用 `sources` 中 Semantic Scholar 的 `references_api`，這是唯一能可靠拿到完整清單的方式。否則從論文 HTML 版的 References 一節整理：只列你能逐筆確認「確實在這篇的參考文獻裡」的項目，並把 `references_complete` 設為 `false`。不完整的清單可以接受，錯的清單不行；摘要式擷取工具回傳的幾十筆長清單不要照抄。
 3. **依 `prompts/paper-intro.md` 的規則**（`atlas_get_prompt`，name 為 `paper-intro`）寫出該篇的 JSON。這份 prompt 定義了每個欄位與每個段落的寫法，寫之前完整讀一遍。寫之前先執行 `context`，才能正確填 `relations`、沿用既有 tag。
 4. **加入**：把 JSON 存成暫存檔（例如 `/tmp/<id>.json`），執行
 
@@ -102,7 +111,7 @@ node scripts/atlas.mjs reject --title "<標題>" --arxiv <id> --reason "<具體�
 
    （`atlas_add_paper`）
 5. `add` 回報錯誤時，依訊息修正 JSON 後重試。回報「重複」時表示第 3 步漏了，放棄這一篇，不要改 id 或標題來規避。
-6. `add` 成功後的輸出會列出 `cites_in_library` 與 `cited_by_in_library`。若新 paper 與這些庫內 paper 有實質關係而你還沒寫進 `relations`，現在補上（編輯 `data/papers/<id>.json`）。若是既有 paper 應該關聯到新 paper，就編輯那篇既有 paper 的 `relations`。
+6. `add` 成功後的輸出會列出 `cites_in_library` 與 `cited_by_in_library`。若新 paper 與這些庫內 paper 有實質關係而你還沒寫進 `relations`，現在補上（編輯 `data/papers/<id>.json`）。若是既有 paper 應該關聯到新 paper，就編輯那篇既有 paper 的 `relations`，改完執行 `validate`。同時有其他 agent 在修改文獻庫時，不要動既有檔案，改在回報中列出建議的關聯。
 
 一篇一篇做完再做下一篇：後加入的 paper 才能關聯到先加入的。建議依發表時間由舊到新加入。
 
@@ -111,7 +120,7 @@ node scripts/atlas.mjs reject --title "<標題>" --arxiv <id> --reason "<具體�
 ```bash
 node scripts/atlas.mjs build
 node scripts/atlas.mjs log-search --topic "<主題>" --queries "<查詢1>;<查詢2>;…" \
-  --sources "<用到的來源 id，逗號分隔>" --added "<id1>,<id2>,…" --rejected <記錄為不收錄的篇數> \
+  --sources "<候選實際來自哪些來源的 id，逗號分隔>" --added "<id1>,<id2>,…" --rejected <這次執行 reject 的次數> \
   --note "<下次可以考慮但這次沒收的、或值得一提的事>"
 git add -A
 git commit -m "papers: add <N> on <主題>"

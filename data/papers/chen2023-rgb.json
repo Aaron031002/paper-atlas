@@ -1,0 +1,122 @@
+{
+  "id": "chen2023-rgb",
+  "title": "Benchmarking Large Language Models in Retrieval-Augmented Generation",
+  "authors": [
+    "Jiawei Chen",
+    "Hongyu Lin",
+    "Xianpei Han",
+    "Le Sun"
+  ],
+  "venue": "AAAI 2024",
+  "year": 2024,
+  "published": "2023-09-04",
+  "added_at": "2026-11-14T17:44:02.871Z",
+  "added_by": "claude-subagent",
+  "ids": {
+    "arxiv": "2309.01431",
+    "doi": "10.1609/aaai.v38i16.29728"
+  },
+  "links": {
+    "paper": "https://arxiv.org/abs/2309.01431",
+    "pdf": "https://arxiv.org/pdf/2309.01431",
+    "code": "https://github.com/chen700564/RGB",
+    "project": null
+  },
+  "category": "evaluation",
+  "tags": [
+    "retrieval-augmented-generation",
+    "rag-evaluation",
+    "benchmark",
+    "robustness",
+    "hallucination"
+  ],
+  "one_liner": "以新聞問答建立中英雙語 RAG 基準，分四種能力測 LLM，發現雜訊、拒答與反事實是主要弱點。",
+  "intro": {
+    "tldr": [
+      "提出 RGB（Retrieval-Augmented Generation Benchmark），把 LLM 在 RAG 中需要的能力拆成四項：noise robustness、negative rejection、information integration、counterfactual robustness。",
+      "資料取自最新新聞，以降低模型靠內部知識作答的機會；英文與中文各占一半。",
+      "評測 ChatGPT 與五個 6B–7B 開源模型，發現模型在雜訊文件下準確率明顯下降、很少在無答案時拒答、也幾乎無法察覺檢索文件中的事實錯誤。"
+    ],
+    "problem": "RAG 被視為緩解 LLM 幻覺、知識過時與缺乏領域知識的主要方法，但網路內容含有大量雜訊甚至錯誤資訊，LLM 也可能被錯誤的上下文誤導，因此加上檢索並不保證答案正確。當時缺少系統性的評測，能說明 LLM 在 RAG 情境中**具體哪些能力不足**。作者想回答：不同 LLM 在面對雜訊文件、沒有答案的文件、需要整合多份文件、以及含有錯誤事實的文件時，表現各如何。",
+    "method": "**四種能力與對應的測試集**\n\n- **Noise robustness**：依指定的雜訊比例（0 到 0.8）混入不含答案的負例文件，看模型能否仍從正例中取出答案。\n- **Negative rejection**：提供的外部文件全部是負例，看模型是否會回答「資訊不足」而非亂答。\n- **Information integration**：把問題擴寫或改寫成需要多份文件才能回答的形式。\n- **Counterfactual robustness**：選模型本身知道答案的問題，人工修改檢索文件中的答案製造事實錯誤，看模型能否察覺並更正。\n\n**資料建構**\n\n1. 收集最新新聞，用 prompt 讓 ChatGPT 從每篇新聞產生事件、問題與答案，答案經人工檢查，並濾掉難以用搜尋取得的資料。\n2. 用 Google 的 API 抓取 10 個相關網頁，切成最多 300 token 的片段，再以稠密檢索模型選出 top-30 片段；依是否含答案標為正例或負例。\n3. 共 600 個基本問題，另有 200 題 information integration 與 200 題 counterfactual robustness，中英文各半。\n\n**評測方式**：每題提供 5 份外部文件。noise robustness 與 information integration 用 exact match 的 accuracy；negative rejection 用 rejection rate；counterfactual robustness 用 error detection rate 與 error correction rate。拒答與錯誤偵測另外用 ChatGPT 判定作為補充。",
+    "contributions": [
+      "提出 LLM 在 RAG 中需要的四種能力，作為評測與分析的框架。",
+      "建立中英雙語的 RGB 基準，作者稱其為第一個針對這四種能力的 RAG 評測基準，並公開程式碼與資料。",
+      "評測六個 LLM，並以錯誤分析整理出模型失敗的典型原因。"
+    ],
+    "results": "評測模型為 ChatGPT（gpt-3.5-turbo）、ChatGLM-6B、ChatGLM2-6B、Vicuna-7B-v1.3、Qwen-7B-Chat、BELLE-7B-2M。\n\n- **Noise robustness**：ChatGPT 在英文的 accuracy 從雜訊比例 0 的 96.33% 降到 0.8 的 76.00%。錯誤分析歸納出三類原因：long-distance information、evidence uncertainty、concept confusion。\n- **Negative rejection**：表現最好的 ChatGPT，以 ChatGPT 判定的拒答率在英文只有 45.00%、中文 43.33%；以 exact match 計算時英文最高的是 Qwen-7B-Chat 的 31.00%。\n- **Information integration**：即使沒有雜訊，英文最佳模型（Vicuna-7B-v1.3）的 accuracy 也只有 60%。對 ChatGLM2-6B 的錯誤分析中，merging error 與 ignoring error 各占 28%、misalignment error 占 6%。\n- **Counterfactual robustness**：ChatGPT 在英文不給外部文件時 accuracy 為 89%，給了含錯誤事實的文件後降到 9%；error detection rate 以 exact match 計僅 8、以 ChatGPT 判定為 7，error correction rate 為 57.14（論文表中這兩項未標單位）。中文的 accuracy 由 91% 降到 17%，error detection rate 為 1（ChatGPT 判定為 3），error correction rate 33.33。也就是說，即使模型本身知道正確答案，仍很少發現檢索文件中的錯誤。",
+    "limitations": "論文沒有獨立的 Limitations 一節，結論也只表示「要有效地把 RAG 應用到 LLM 仍需大量工作」。實驗段落中作者提到幾個尚待解決的方向：長文件建模、概念理解，以及使用 chain-of-thought 可能有幫助但會拖慢推論。\n\n以下為讀者觀察、非作者自述：問題與答案由 ChatGPT 依新聞產生後人工檢查，受測模型之一也是 ChatGPT，可能有利於它；每題固定 5 份文件、答案以 exact match 判定，對長答案或改寫答案不友善；受測的開源模型都在 7B 以下，結論未必適用於更大的模型；新聞資料會隨時間被新模型的預訓練資料涵蓋，「降低內部知識影響」的效果會逐漸減弱。",
+    "takeaways": "RGB 把「RAG 好不好」拆成可以分別量測的能力，這個拆法（雜訊、拒答、整合、反事實）被後續許多 RAG 基準沿用或擴充。它評測的是 **LLM 作為 RAG 的生成端**，不是檢索器，因此可以和 [[lewis2020-rag]] 這類架構論文對照：架構論文證明檢索有幫助，RGB 則說明檢索內容有問題時生成端會怎麼失敗。做 RAG 研究的人可以直接借用它的雜訊比例設計與反事實文件的構造方式，作為穩健性實驗的範本。"
+  },
+  "relations": [],
+  "references": [
+    {
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "authors": "Lewis et al.",
+      "year": 2020,
+      "arxiv": "2005.11401"
+    },
+    {
+      "title": "REALM: Retrieval-Augmented Language Model Pre-Training",
+      "authors": "Guu et al.",
+      "year": 2020,
+      "arxiv": "2002.08909"
+    },
+    {
+      "title": "Improving language models by retrieving from trillions of tokens",
+      "authors": "Borgeaud et al.",
+      "year": 2022
+    },
+    {
+      "title": "Atlas: Few-shot Learning with Retrieval Augmented Language Models",
+      "authors": "Izacard et al.",
+      "year": 2022
+    },
+    {
+      "title": "Leveraging Passage Retrieval with Generative Models for Open Domain Question Answering",
+      "authors": "Izacard, Grave",
+      "year": 2021
+    },
+    {
+      "title": "REPLUG: Retrieval-Augmented Black-Box Language Models",
+      "authors": "Shi et al.",
+      "year": 2023
+    },
+    {
+      "title": "Evaluating Verifiability in Generative Search Engines",
+      "authors": "Liu, Zhang, Liang",
+      "year": 2023
+    },
+    {
+      "title": "Investigating the Factual Knowledge Boundary of Large Language Models with Retrieval Augmentation",
+      "authors": "Ren et al.",
+      "year": 2023
+    },
+    {
+      "title": "Interleaving Retrieval with Chain-of-Thought Reasoning for Knowledge-Intensive Multi-Step Questions",
+      "authors": "Trivedi et al.",
+      "year": 2023
+    },
+    {
+      "title": "Survey of Hallucination in Natural Language Generation",
+      "authors": "Ji et al.",
+      "year": 2023
+    },
+    {
+      "title": "Large Language Models with Controllable Working Memory",
+      "authors": "Li et al.",
+      "year": 2023
+    },
+    {
+      "title": "A Survey on Evaluation of Large Language Models",
+      "authors": "Chang et al.",
+      "year": 2023
+    }
+  ],
+  "references_complete": false,
+  "source": {
+    "found_via": "arxiv",
+    "query": "Benchmarking Large Language Models in Retrieval-Augmented Generation RGB noise robustness negative rejection",
+    "retrieved_at": "2026-11-15"
+  }
+}

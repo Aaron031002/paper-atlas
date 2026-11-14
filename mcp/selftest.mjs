@@ -60,6 +60,8 @@ try {
     const first = papers[0];
     const paper = await call('atlas_get_paper', { id: first.id });
     check('atlas_get_paper', paper.data.id === first.id);
+    const near = await call('atlas_neighbors', { id: first.id });
+    check('atlas_neighbors', Array.isArray(near.data.relations_in) && Array.isArray(near.data.cited_by));
     const dup = await call('atlas_check_duplicate', { title: first.title.toUpperCase() });
     check('atlas_check_duplicate 擋下已收錄的 paper', dup.data.status === 'in_library', dup.data.matched_on);
     const again = await call('atlas_add_paper', { paper: paper.data });

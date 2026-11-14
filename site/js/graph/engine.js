@@ -8,6 +8,8 @@
 const LINK_LENGTH = { relation: 130, cites: 130, tag: 80, ref: 95 };
 const CHARGE = { paper: -900, tag: -260, ref: -220 };
 const ALPHA_MIN = 0.003;
+const STEP_MS = 1000 / 60; // the simulation runs in fixed 60 Hz steps
+const MAX_FLING = 36; // px per 60 Hz frame; keeps a flick from throwing the graph off screen
 
 export class ForceGraph {
   constructor(canvas, { onSelect = () => {}, onHover = () => {} } = {}) {
@@ -177,19 +179,32 @@ export class ForceGraph {
   }
 
   frame() {
+    // Everything advances by elapsed time, not by frame count, so the graph
+    // moves at the same speed on a 60 Hz laptop and a 240 Hz monitor.
+    const now = performance.now();
+    const dt = Math.min(50, this.lastFrame ? now - this.lastFrame : STEP_MS);
+    this.lastFrame = now;
+    const frames = dt / STEP_MS; // elapsed time in 60 Hz frames
     let busy = false;
 
-    if (this.alpha > ALPHA_MIN || this.alphaTarget > 0) { this.tick(); busy = true; }
+    if (this.alpha > ALPHA_MIN || this.alphaTarget > 0) {
+      this.pendingMs = Math.min((this.pendingMs || 0) + dt, STEP_MS * 3);
+      while (this.pendingMs >= STEP_MS) { this.tick(); this.pendingMs -= STEP_MS; }
+      busy = true;
+    } else {
+      this.pendingMs = 0;
+    }
 
     if (this.inertia) {
       const v = this.inertia;
-      this.cam.x += v.x; this.cam.y += v.y;
+      this.cam.x += v.x * frames; this.cam.y += v.y * frames;
       this.camTarget.x = this.cam.x; this.camTarget.y = this.cam.y;
-      v.x *= 0.92; v.y *= 0.92;
+      const friction = 0.9 ** frames;
+      v.x *= friction; v.y *= friction;
       if (Math.abs(v.x) + Math.abs(v.y) < 0.15) this.inertia = null; else busy = true;
     }
 
-    const ease = this.reducedMotion ? 1 : 0.22;
+    const ease = this.reducedMotion ? 1 : 1 - 0.78 ** frames;
     for (const key of ['x', 'y', 'k']) {
       const diff = this.camTarget[key] - this.cam[key];
       if (Math.abs(diff) > (key === 'k' ? 0.0005 : 0.05)) { this.cam[key] += diff * ease; busy = true; }
@@ -197,22 +212,23 @@ export class ForceGraph {
     }
 
     // Fade nodes and edges toward their highlight state.
+    const fadeEase = this.reducedMotion ? 1 : 1 - 0.8 ** frames;
     const focus = this.hovered || this.selected;
     const near = focus ? this.neighbors.get(focus) : null;
     for (const node of this.nodes) {
       const target = !focus || node.id === focus || near.has(node.id) ? 1 : 0.14;
-      if (Math.abs(target - node.fade) > 0.01) { node.fade += (target - node.fade) * (this.reducedMotion ? 1 : 0.2); busy = true; }
+      if (Math.abs(target - node.fade) > 0.01) { node.fade += (target - node.fade) * fadeEase; busy = true; }
       else node.fade = target;
     }
     for (const edge of this.edges) {
       const target = !focus || edge.s.id === focus || edge.t.id === focus ? 1 : 0.1;
-      if (Math.abs(target - edge.fade) > 0.01) { edge.fade += (target - edge.fade) * (this.reducedMotion ? 1 : 0.2); busy = true; }
+      if (Math.abs(target - edge.fade) > 0.01) { edge.fade += (target - edge.fade) * fadeEase; busy = true; }
       else edge.fade = target;
     }
 
     this.draw();
     if (busy) requestAnimationFrame(() => this.frame());
-    else this.running = false;
+    else { this.running = false; this.lastFrame = 0; }
   }
 
   // ---------- drawing ----------
@@ -508,8 +524,12 @@ export class ForceGraph {
         } else {
           this.cam.x += dx; this.cam.y += dy;
           this.camTarget.x = this.cam.x; this.camTarget.y = this.cam.y;
-          drag.velocity = { x: drag.velocity.x * 0.4 + dx * 0.6, y: drag.velocity.y * 0.4 + dy * 0.6 };
-          drag.lastMove = performance.now();
+          // Pointer speed in px per 60 Hz frame, smoothed over recent moves.
+          const t = performance.now();
+          const elapsed = Math.max(4, t - (drag.lastMove || t - STEP_MS));
+          const scale = STEP_MS / elapsed;
+          drag.velocity = { x: drag.velocity.x * 0.4 + dx * scale * 0.6, y: drag.velocity.y * 0.4 + dy * scale * 0.6 };
+          drag.lastMove = t;
         }
         this.wake();
       }
@@ -531,7 +551,9 @@ export class ForceGraph {
       } else if (!drag.moved) {
         this.select(null);
       } else if (!this.reducedMotion && drag.lastMove && performance.now() - drag.lastMove < 60) {
-        this.inertia = { ...drag.velocity };
+        const speed = Math.hypot(drag.velocity.x, drag.velocity.y);
+        const cap = speed > MAX_FLING ? MAX_FLING / speed : 1;
+        if (speed > 1.5) this.inertia = { x: drag.velocity.x * cap, y: drag.velocity.y * cap };
       }
       this.wake();
     };

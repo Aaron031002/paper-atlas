@@ -23,11 +23,11 @@ description: 使用者提供自己的研究題目與進度時，從 Paper Atlas 
 
 1. **讀規則**：`prompt research-advice`（`atlas_get_prompt`）。
 2. **確認資訊**：依規則檢查使用者給的資訊是否足夠。必填的缺了就問，最多問一輪。
-3. **讀文獻庫**：`context`（`atlas_library_context`），依規則評估相關性，再用 `show <id>`（`atlas_get_paper`）讀入選 paper 的完整紀錄。
+3. **讀文獻庫**：`context`（`atlas_library_context`），依規則評估相關性，再用 `show <id>`（`atlas_get_paper`）讀入選 paper 的完整紀錄，並用 `neighbors <id>`（`atlas_neighbors`）沿關聯多看一步。
 4. **從參考文獻延伸**：`refs --cited-by <入選的 id>` 與 `refs --min-cited-by 2`（`atlas_missing_references`）。
 5. **寫報告**：使用規則中的固定骨架與依據標示（`【庫內】`、`【參考文獻】`、`【推論】`）。骨架固定，內容由你判斷，「開放發想」一節不受文獻庫限制。
-6. **存檔**：把報告存成 Markdown，執行
-   `save-advice <file.md> --title "…" --stage "…" --summary "…"`（`atlas_save_advice`）。
+6. **存檔**：把報告本文寫到暫存資料夾的 Markdown 檔（不要寫在 repo 裡），執行
+   `save-advice <file.md> --title "…" --stage "…" --summary "…"`（`atlas_save_advice`）；檔名給 `-` 可改從標準輸入傳入。
    預設存到 `advice-private/`，不進 git、不上網站。使用者明確說要公開時才加 `--publish`，並在之後執行 `build`、commit、push。
 7. **呈現**：在對話中給出完整報告。
 8. **後續**：詢問是否要把推薦的未收錄文獻與文獻庫缺口交給 **find-papers** skill 去找。使用者同意才執行。

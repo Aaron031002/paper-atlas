@@ -66,7 +66,7 @@
     },
     {
       "title": "Program Induction by Rationale Generation: Learning to Solve and Explain Algebraic Word Problems",
-      "authors": "Ling, Yogatama, Dyer, Blunsom",
+      "authors": "Ling et al.",
       "year": 2017,
       "arxiv": "1705.04146"
     },
@@ -81,12 +81,6 @@
       "authors": "Nye et al.",
       "year": 2021,
       "arxiv": "2112.00114"
-    },
-    {
-      "title": "PaLM: Scaling Language Modeling with Pathways",
-      "authors": "Chowdhery et al.",
-      "year": 2022,
-      "arxiv": "2204.02311"
     }
   ],
   "references_complete": false,

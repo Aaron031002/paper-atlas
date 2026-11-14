@@ -28,6 +28,7 @@ Paper Atlas 是一個以檔案為資料庫的論文文獻庫。每篇 paper 是 
 | 列出 paper（可依分類、tag 篩選與排序） | `list [--category id] [--tag t] [--sort …]` | `atlas_list_papers` |
 | 關鍵字搜尋 | `search <關鍵字>` | `atlas_search` |
 | 一篇的完整紀錄 | `show <id>` | `atlas_get_paper` |
+| 與一篇有關的庫內 paper（雙向關聯、引用、共用 tag） | `neighbors <id>` | `atlas_neighbors` |
 | 給 LLM 讀的精簡總覽（每篇一行 + 關聯） | `context` | `atlas_library_context` |
 | 被引用但尚未收錄的文獻 | `refs` | `atlas_missing_references` |
 | 過去的搜尋紀錄 | `history` | `atlas_search_history` |

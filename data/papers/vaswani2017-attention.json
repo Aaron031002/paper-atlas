@@ -46,7 +46,7 @@
       "以複雜度、可平行化程度與最長路徑長度，系統性比較 self-attention、遞迴層與卷積層。"
     ],
     "results": "在 WMT 2014 英德翻譯上，big 模型達到 **28.4 BLEU**，比先前包含 ensemble 在內的最佳結果高出 2 BLEU 以上；英法翻譯達到 **41.8 BLEU**，只在 8 張 GPU 上訓練 3.5 天。作者也把模型用在英文 constituency parsing，顯示它能推廣到翻譯以外的任務。",
-    "limitations": "Self-attention 的計算量與記憶體隨序列長度呈平方成長，作者在結論中把「只看局部鄰域的 restricted attention」列為處理長序列的未來工作。實驗集中在機器翻譯與句法剖析，對影像、語音等其他模態只是展望。",
+    "limitations": "Self-attention 每層的計算量隨序列長度呈平方成長（Table 1：`O(n²·d)`），作者在第 4 節把「只看大小為 r 的局部鄰域」的 restricted attention 列為處理很長序列的未來工作，結論中也提到要研究 local, restricted attention 以處理影像、音訊、影片等大型輸入輸出。實驗集中在機器翻譯與句法剖析，對影像、語音等其他模態只是展望。",
     "takeaways": "這篇之後，「把 Transformer 疊深、加大、預訓練」成為主線：[[devlin2018-bert]] 用它的 encoder，[[brown2020-gpt3]] 用它的 decoder。讀任何 LLM 論文前，這篇的 attention 公式與架構圖是必備背景。"
   },
   "relations": [],

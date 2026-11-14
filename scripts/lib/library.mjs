@@ -226,6 +226,38 @@ export function missingReferences({ minCitedBy = 1, citedBy = null, limit = 50 }
 }
 
 /**
+ * Everything in the library connected to one paper, in both directions:
+ * explicit relations, citations, and papers sharing a tag.
+ */
+export function neighbors(id) {
+  const papers = loadPapers();
+  const paper = papers.find((p) => p.id === id);
+  if (!paper) throw new Error(`文獻庫裡沒有 id 為「${id}」的 paper。用 list 或 search 查詢現有的 id。`);
+  const index = buildIdentityIndex(papers);
+  const ownKeys = new Set(identityKeys(paper));
+  const title = (pid) => papers.find((p) => p.id === pid)?.title;
+  const cites = [...new Set(paper.references.map((ref) => findInLibrary(ref, index)?.paper.id).filter((pid) => pid && pid !== id))];
+  const citedBy = papers
+    .filter((p) => p.id !== id && p.references.some((ref) => identityKeys(ref).some((k) => ownKeys.has(k))))
+    .map((p) => p.id);
+  const sharedTags = {};
+  for (const p of papers) {
+    if (p.id === id) continue;
+    const common = p.tags.filter((t) => paper.tags.includes(t));
+    if (common.length) sharedTags[p.id] = common;
+  }
+  return {
+    id,
+    title: paper.title,
+    relations_out: (paper.relations || []).map((r) => ({ ...r, title: title(r.target) })),
+    relations_in: papers.flatMap((p) => (p.relations || []).filter((r) => r.target === id).map((r) => ({ source: p.id, title: p.title, type: r.type, note: r.note }))),
+    cites: cites.map((pid) => ({ id: pid, title: title(pid) })),
+    cited_by: citedBy.map((pid) => ({ id: pid, title: title(pid) })),
+    shares_tags_with: Object.entries(sharedTags).map(([pid, tags]) => ({ id: pid, title: title(pid), tags })),
+  };
+}
+
+/**
  * A compact, token-cheap view of the whole library for an LLM to reason over:
  * one line per paper, plus relations. Read this before the full records.
  */
@@ -255,19 +287,22 @@ export function saveAdvice({ title, stage = '', summary = '', body, publish = fa
   const linked = [...body.matchAll(/\[\[([^\]]+)\]\]/g)].map((m) => m[1]);
   const unknown = [...new Set(linked.filter((id) => !knownIds.has(id)))];
   const date = today();
-  const slug = normalizeTitle(title).replace(/[^a-z0-9 ]/g, '').trim().split(/\s+/).filter(Boolean).slice(0, 6).join('-') || `advice-${Date.now().toString(36)}`;
+  // File name: letters and digits of any script (Chinese titles stay readable), words joined by hyphens.
+  const slug = [...normalizeTitle(title).replace(/\s+/g, '-')].slice(0, 40).join('').replace(/-+$/, '') || `advice-${Date.now().toString(36)}`;
   const dir = publish ? PATHS.advice : PATHS.advicePrivate;
   fs.mkdirSync(dir, { recursive: true });
   let id = `${date}-${slug}`;
   for (let n = 2; fs.existsSync(path.join(dir, `${id}.md`)); n += 1) id = `${date}-${slug}-${n}`;
   const oneLine = (s) => String(s).replace(/\s+/g, ' ').trim();
-  const text = `---\ntitle: ${oneLine(title)}\ncreated: ${date}\nstage: ${oneLine(stage)}\nsummary: ${oneLine(summary)}\n---\n\n${body.trim()}\n`;
+  const used = [...new Set(linked.filter((id) => knownIds.has(id)))];
+  const text = `---\ntitle: ${oneLine(title)}\ncreated: ${date}\nstage: ${oneLine(stage)}\nsummary: ${oneLine(summary)}\npapers: ${used.join(', ')}\n---\n\n${body.trim()}\n`;
   fs.writeFileSync(path.join(dir, `${id}.md`), text);
   return {
     ok: true,
     id,
     file: path.relative(ROOT, path.join(dir, `${id}.md`)),
     published: publish,
+    papers_linked: used,
     warnings: unknown.length ? [`報告裡的 [[${unknown.join(']]、[[')}]] 不是文獻庫裡的 id，網頁上不會變成連結`] : [],
   };
 }

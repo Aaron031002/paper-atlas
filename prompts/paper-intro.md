@@ -62,7 +62,7 @@
 
 | 欄位 | 規則 |
 |---|---|
-| `id` | `第一作者姓氏小寫 + 首次公開年份 + "-" + 一到三個關鍵字`，只用小寫英數與連字號。例：`vaswani2017-attention`、`yao2022-react`。年份取 `published` 的年份。姓氏有變音符號時轉成最接近的 ASCII 字母。 |
+| `id` | `第一作者姓氏小寫 + 首次公開年份 + "-" + 一到三個關鍵字`，只用小寫英數與連字號。例：`vaswani2017-attention`、`yao2022-react`。年份取 `published` 的年份。姓氏有變音符號時轉成最接近的 ASCII 字母；姓氏本身含連字號、空白或撇號時去掉這些符號後連寫（Saad-Falcon → `saadfalcon`，van der Maaten → `vandermaaten`）。 |
 | `title` | 論文原始標題，大小寫照原文，不翻譯。 |
 | `authors` | 全部作者的完整姓名，依論文上的順序，一人一個字串。不要用 "et al." 省略。 |
 | `venue` | 正式發表場合加年份，例如 `"ICLR 2023"`、`"EMNLP 2020"`。尚未正式發表填 `"arXiv preprint"`。期刊填期刊名與年份。 |
@@ -72,7 +72,7 @@
 | `ids.doi` | DOI，不含 `https://doi.org/`。沒有就填 `null`。arXiv 自動發的 `10.48550/arXiv.*` 不用填。 |
 | `links.paper` | 論文頁面網址（必填）。優先用 arXiv abs 頁，其次 ACL Anthology、OpenReview、出版社頁面。 |
 | `links.pdf` / `code` / `project` | 有就填，沒有填 `null`。`code` 只填作者自己釋出的官方程式碼。 |
-| `source.found_via` | 你是從哪個來源找到這篇的，填 `config/domain.json` 中 `sources[].id` 的值；從庫內 paper 的參考文獻找到的填 `"references"`；使用者直接指定的填 `"user"`。 |
+| `source.found_via` | 你是從哪個來源找到這篇的，填 `config/domain.json` 中 `sources[].id` 的值（以你實際讀到的頁面所在的來源為準）；透過一般網頁搜尋找到、對不上任何來源的填 `"web-search"`；從庫內 paper 的參考文獻找到的填 `"references"`；使用者直接指定的填 `"user"`。 |
 | `source.query` | 當時用的搜尋關鍵字。 |
 | `source.retrieved_at` | 今天的日期 `YYYY-MM-DD`。 |
 
@@ -188,6 +188,7 @@ tag 會成為知識圖譜上的「概念」節點：兩篇以上的 paper 共用
 - 不確定的細節（某個超參數、某個資料集的大小）寧可省略，不要猜。
 - 論文沒做的實驗，不要寫成做了。論文只在特定設定下成立的結論，要連同設定一起寫。
 - 書目資料（作者、日期、venue）要對照來源頁面確認，不要憑印象。
+- 如果你讀論文的工具是由另一個模型代為摘要頁面，它回報的數字與清單可能有錯。重要的數字請它引用原句或表格列，並從另一個版本（HTML 與 PDF）再核對一次；核對不了就不要寫那個數字。
 - 區分三種陳述：論文的實驗結果、作者的主張或解釋、你自己的觀察。第三種只能出現在 `limitations`（需標示）與 `takeaways`。
 
 ## 交出去之前的檢查

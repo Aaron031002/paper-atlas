@@ -64,15 +64,24 @@ export function renderGraph(main, ctx, { query }) {
   const paperNode = new Map(graph.nodes.filter((n) => n.type === 'paper').map((n) => [n.id, n]));
 
   const engine = new ForceGraph(canvas, { onSelect: showDetail });
-  const wide = window.matchMedia('(min-width: 900px)');
-  // Keep the graph clear of the legend (left) and, once open, the detail panel (right).
+  // Tell the engine how much of the canvas the panels cover, so "fit" and
+  // "focus" place the graph in the part that is actually visible.
+  const sheetLayout = window.matchMedia('(max-width: 820px)'); // same breakpoint as styles.css
+  const legend = main.querySelector('.graph-legend');
+  let legendAutoFolded = false;
   const setInsets = () => {
+    const box = canvas.getBoundingClientRect();
     const open = !detail.hidden;
-    engine.insets = {
-      left: wide.matches ? 290 : 0,
-      right: wide.matches && open ? 350 : 0,
-      bottom: !wide.matches && open ? Math.min(detail.offsetHeight + 16, canvas.clientHeight * 0.5) : 0,
-    };
+    if (sheetLayout.matches) {
+      // Small screens: the legend is folded by default and the detail panel is a bottom sheet.
+      engine.insets = { left: 0, right: 0, bottom: open ? Math.min(detail.offsetHeight + 16, box.height * 0.5) : 0 };
+      return;
+    }
+    let left = legend.open ? legend.getBoundingClientRect().right - box.left + 12 : 0;
+    const right = open ? box.right - detail.getBoundingClientRect().left + 12 : 0;
+    // Not enough room between the two panels: let the graph run under the legend instead.
+    if (box.width - left - right < 360) left = 0;
+    engine.insets = { left, right, bottom: 0 };
   };
   setInsets();
 
@@ -132,7 +141,13 @@ export function renderGraph(main, ctx, { query }) {
   };
 
   function showDetail(node) {
-    if (!node) { detail.hidden = true; detail.innerHTML = ''; setInsets(); return; }
+    if (!node) {
+      detail.hidden = true;
+      detail.innerHTML = '';
+      if (legendAutoFolded) { legend.open = true; legendAutoFolded = false; }
+      setInsets();
+      return;
+    }
     const raw = graph.nodes.find((n) => n.id === node.id);
     const c = connections(node.id);
     let html = '';
@@ -166,7 +181,16 @@ export function renderGraph(main, ctx, { query }) {
     }
     detail.innerHTML = `<button type="button" class="detail-close" aria-label="關閉">×</button>${html}`;
     detail.hidden = false;
+    // On a medium-width window both panels together leave too little graph: fold the legend while details are open.
+    if (!sheetLayout.matches && legend.open) {
+      const room = canvas.clientWidth - legend.offsetWidth - detail.offsetWidth - 56;
+      if (room < 360) { legend.open = false; legendAutoFolded = true; }
+    }
     setInsets();
+    // If a panel now covers the selected node, bring it back into the visible part.
+    const at = engine.toScreen(engine.byId.get(node.id));
+    const { left, right, bottom } = engine.insets;
+    if (at.x < left + 24 || at.x > canvas.clientWidth - right - 24 || at.y > canvas.clientHeight - bottom - 24) engine.focus(node.id);
   }
 
   function focusNode(id) {
@@ -219,8 +243,10 @@ export function renderGraph(main, ctx, { query }) {
     if (action === 'relax') { engine.releaseAll(); setTimeout(() => engine.fit(), 700); }
   });
 
-  // Phones start with the legend folded so the graph is visible.
-  if (window.matchMedia('(max-width: 700px)').matches) main.querySelector('.graph-legend').open = false;
+  // Small screens start with the legend folded so the graph is visible.
+  if (sheetLayout.matches) legend.open = false;
+  legend.addEventListener('toggle', () => { setInsets(); if (!engine.selected) engine.fit(); });
+  setInsets();
 
   refresh();
   const focus = query.get('focus');

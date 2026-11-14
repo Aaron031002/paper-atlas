@@ -79,6 +79,11 @@ const TOOLS = {
     inputSchema: obj({ id: str('paper id，例如 lewis2020-rag') }, ['id']),
     run: ({ id }) => lib.getPaper(id),
   },
+  atlas_neighbors: {
+    description: '與某篇 paper 有關的庫內 paper：它指向別人的關聯、別人指向它的關聯、它引用的、引用它的、與它共用 tag 的。做研究建議時用來沿著關聯多看一步。',
+    inputSchema: obj({ id: str('paper id') }, ['id']),
+    run: ({ id }) => lib.neighbors(id),
+  },
   atlas_library_context: {
     description: '給 LLM 讀的精簡總覽：每篇 paper 一行（id、年份、分類、標題、一句話介紹、tags）加上所有關聯。寫新 paper 的 relations 或做研究建議前先讀這個。',
     inputSchema: obj({}),

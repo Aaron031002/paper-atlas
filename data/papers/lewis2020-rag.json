@@ -42,21 +42,21 @@
       "在三個開放領域問答任務達到當時最佳成績，生成的文字比純參數式模型更具體、更符合事實。"
     ],
     "problem": "大型預訓練語言模型把知識存在參數裡，但**無法精確讀取或更新這些知識**，也不能說明答案的依據，還可能產生看似合理的錯誤內容。先前結合檢索的模型多半只處理抽取式問答。作者想要一個通用的做法，讓任何 seq2seq 任務都能在生成時取用外部知識。",
-    "method": "RAG 有兩個元件：\n\n- **Retriever**：採用 DPR，以問題向量在 Wikipedia 段落索引中取回 top-K 文件。\n- **Generator**：BART-large，輸入為原始輸入與檢索到的文件串接。\n\n對檢索文件做邊際化（marginalize）有兩種方式：**RAG-Sequence** 整個輸出序列使用同一份文件；**RAG-Token** 每個輸出 token 可以依據不同文件。訓練時只更新 query encoder 與 generator，文件 encoder 與索引保持固定，因此不需要標註「該檢索哪份文件」。",
+    "method": "RAG 有兩個元件：\n\n- **Retriever**：採用 DPR，以問題向量在 Wikipedia 段落索引中取回 top-K 文件。\n- **Generator**：BART-large，輸入為原始輸入與檢索到的文件串接。\n\n對檢索文件做邊際化（marginalize）有兩種方式：**RAG-Sequence** 整個輸出序列使用同一份文件；**RAG-Token** 每個輸出 token 可以依據不同文件。訓練時只更新 query encoder 與 generator，文件 encoder 與索引保持固定；由於檢索文件被當成隱變數，訓練也不需要標註「該檢索哪份文件」。",
     "contributions": [
       "提出通用的檢索增強生成微調方法，適用於各種知識密集的 seq2seq 任務。",
       "比較 RAG-Sequence 與 RAG-Token 兩種邊際化方式。",
       "示範直接替換索引就能更新模型的知識，不必重新訓練。"
     ],
-    "results": "RAG 在 Natural Questions、WebQuestions、CuratedTrec 三個開放領域問答任務上達到當時最佳成績，超越純參數式 seq2seq 模型與針對任務設計的「檢索後抽取」架構。在 MS-MARCO 與 Jeopardy 問題生成上，人工評估認為 RAG 的輸出比 BART 更具體、多樣且符合事實。在 FEVER 事實查核上，不使用檢索監督訊號的 RAG 與當時複雜的 pipeline 系統差距在 4.3 個百分點以內。",
-    "limitations": "文件 encoder 與索引在訓練中固定不動，作者說明這是因為更新它需要反覆重建索引、成本很高，但也表示檢索端沒有完全針對下游任務最佳化。知識來源是單一的 Wikipedia 快照，作者在 broader impact 中提到外部知識庫本身可能帶有偏誤或錯誤。以下為讀者觀察：生成器仍可能忽略檢索內容而依賴自身參數，論文並未量測這種情況的比例。",
+    "results": "RAG 在 Natural Questions、WebQuestions、CuratedTrec 三個開放領域問答任務上達到當時最佳成績，超越純參數式 seq2seq 模型與針對任務設計的「檢索後抽取」架構。在 Jeopardy 問題生成的人工評估中，評估者認為 RAG 比 BART 更符合事實（42.7% vs 7.1%）、也更具體；以 distinct n-gram 比例自動量測，RAG 在 MS-MARCO 與 Jeopardy 上的輸出都比 BART 更多樣。在 FEVER 事實查核（3-way 分類）上，不使用檢索監督訊號的 RAG 與當時複雜的 pipeline 系統差距在 4.3 個百分點以內。",
+    "limitations": "文件 encoder 與索引在訓練中固定不動，作者說明這是因為更新它需要反覆重建索引、成本很高，並表示他們發現這一步對取得好成績並非必要。知識來源是單一的 Wikipedia 快照，作者在 broader impact 中提到外部知識庫本身可能帶有偏誤或錯誤。作者在附錄中也提到，在 story generation 的初步實驗裡檢索會「collapse」（不論輸入都取回相同文件），之後生成器學會忽略文件，表現等同 BART。以下為讀者觀察、非作者自述：論文並未量測主要任務中生成器忽略檢索內容的比例。",
     "takeaways": "「RAG」這個詞與基本架構都來自這篇。後續研究多半在改進其中一個環節：檢索器（見 [[karpukhin2020-dpr]]）、檢索時機、或生成器如何使用檢索內容。做 RAG 相關研究時，RAG-Sequence 與 RAG-Token 的區分，以及「換索引即可更新知識」的實驗設計，都值得直接參考。"
   },
   "relations": [
     {
       "target": "karpukhin2020-dpr",
       "type": "builds-on",
-      "note": "RAG 的 retriever 直接使用 DPR 的雙塔 encoder 與 Wikipedia 索引。"
+      "note": "RAG 的 retriever 直接使用 DPR 的雙塔 encoder，並用它的文件 encoder 為 Wikipedia 建立索引。"
     }
   ],
   "references": [

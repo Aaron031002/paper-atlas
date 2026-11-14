@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "date": "2026-11-14T17:44:42.740Z",
+    "topic": "RAG 評測（retrieval-augmented generation evaluation）",
+    "queries": [
+      "retrieval-augmented generation evaluation benchmark",
+      "RAG benchmark evaluating retrieval-augmented generation",
+      "faithfulness evaluation retrieval augmented generation automated framework",
+      "attribution evaluation LLM citations retrieval-augmented",
+      "RAG evaluation benchmark 2026",
+      "retrieval-augmented generation evaluation fine-grained diagnostic",
+      "CRAG Comprehensive RAG Benchmark"
+    ],
+    "sources": [
+      "arxiv",
+      "openreview",
+      "acl-anthology"
+    ],
+    "added": [
+      "chen2023-rgb",
+      "saadfalcon2023-ares"
+    ],
+    "rejected": 0,
+    "note": "下次可考慮：RAGChecker(2408.08067, NeurIPS 2024)、CRAG(2406.04744, NeurIPS 2024)、Ragas(2309.15217)、RAGBench(2407.11005)、CRUD-RAG(2401.17043)、LIT-RAGBench(2603.06198, 2026 新作)。Semantic Scholar API 在此環境無法存取，改用 WebSearch。"
+  }
+]

@@ -16,6 +16,7 @@ const HELP = `Paper Atlas CLI
   overview                          文獻庫概況：領域、分類、篇數、最近加入
   list [--category id] [--tag t] [--sort added-desc|added-asc|published-desc|published-asc|title]
   show <id>                         一篇 paper 的完整紀錄
+  neighbors <id>                    與這篇有關的庫內 paper：雙向的關聯、引用、被引用、共用 tag
   search <關鍵字…> [--limit n]       在文獻庫裡搜尋
   context                           給 LLM 讀的精簡總覽（每篇一行 + 關聯）
   refs [--min-cited-by n] [--cited-by id,id] [--limit n]
@@ -33,8 +34,9 @@ const HELP = `Paper Atlas CLI
   log-search --topic "…" [--queries "a;b"] [--sources "arxiv,semantic-scholar"] [--added id,id] [--rejected n] [--note "…"]
 
 研究建議
-  save-advice <file.md> --title "…" [--stage "…"] [--summary "…"] [--publish]
+  save-advice <file.md | -> --title "…" [--stage "…"] [--summary "…"] [--publish]
                                     預設存到 advice-private/（不進 git）；--publish 才會出現在網站
+                                    檔名給 - 表示從標準輸入讀取報告本文
 
 維護
   validate                          檢查所有 paper 的格式、重複與關聯
@@ -95,6 +97,7 @@ function main() {
       return json ? out(cards) : printCards(cards);
     }
     case 'show': return out(lib.getPaper(positional[0]));
+    case 'neighbors': return out(lib.neighbors(positional[0]));
     case 'search': {
       const cards = lib.searchPapers(positional.join(' '), { limit: Number(flags.limit) || 10 });
       return json ? out(cards) : printCards(cards);
@@ -149,7 +152,7 @@ function main() {
       if (!positional[0]) throw new Error('用法：save-advice <file.md> --title "…"');
       return out(lib.saveAdvice({
         title: flags.title, stage: flags.stage || '', summary: flags.summary || '',
-        body: fs.readFileSync(positional[0], 'utf8'), publish: Boolean(flags.publish),
+        body: fs.readFileSync(positional[0] === '-' ? 0 : positional[0], 'utf8'), publish: Boolean(flags.publish),
       }));
     }
     case 'validate': {
