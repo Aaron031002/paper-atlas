@@ -546,6 +546,12 @@ export class ForceGraph {
       c.classList.remove('is-dragging');
       this.alphaTarget = 0;
       if (drag.node) {
+        if (drag.moved && ev.type === 'pointerup') {
+          // Drop exactly where the pointer was released, even if the last move event was skipped.
+          const p = this.localPoint(ev);
+          drag.node.x = drag.node.fx = (p.x - this.cam.x) / this.cam.k - drag.offset.x;
+          drag.node.y = drag.node.fy = (p.y - this.cam.y) / this.cam.k - drag.offset.y;
+        }
         if (!(this.pinOnDrop && drag.moved)) { drag.node.fx = null; drag.node.fy = null; }
         if (!drag.moved) this.select(drag.node.id);
       } else if (!drag.moved) {
