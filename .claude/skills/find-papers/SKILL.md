@@ -122,14 +122,16 @@ node scripts/atlas.mjs build
 node scripts/atlas.mjs log-search --topic "<主題>" --queries "<查詢1>;<查詢2>;…" \
   --sources "<候選實際來自哪些來源的 id，逗號分隔>" --added "<id1>,<id2>,…" --rejected <這次執行 reject 的次數> \
   --note "<下次可以考慮但這次沒收的、或值得一提的事>"
-git add -A
-git commit -m "papers: add <N> on <主題>"
-git push
+node scripts/atlas.mjs sync-mode
 ```
 
-（`atlas_build`、`atlas_log_search`；git 用 shell 執行）
+（`atlas_build`、`atlas_log_search`、`atlas_sync_mode`）
 
-`build` 失敗就修到通過為止，不要 push 壞掉的狀態。push 之後 Vercel 會自動重新部署網站。沒有 push 權限時，完成 commit 並告訴使用者需要他來 push。
+`build` 失敗就修到通過為止。接著照 `sync-mode` 列出的步驟收尾，它依這台電腦的設定而不同：
+
+- `local`：不動 git，告訴使用者用 `node scripts/atlas.mjs serve` 預覽。
+- `commit`：commit（訊息用 `papers: add <N> on <主題>`），不 push。
+- `push`：commit 後 push。push 被拒絕時不要重試，保留 commit 並把錯誤告訴使用者。
 
 ## 7. 回報
 

@@ -28,7 +28,7 @@ description: 使用者提供自己的研究題目與進度時，從 Paper Atlas 
 5. **寫報告**：使用規則中的固定骨架與依據標示（`【庫內】`、`【參考文獻】`、`【推論】`）。骨架固定，內容由你判斷，「開放發想」一節不受文獻庫限制。
 6. **存檔**：把報告本文寫到暫存資料夾的 Markdown 檔（不要寫在 repo 裡），執行
    `save-advice <file.md> --title "…" --stage "…" --summary "…"`（`atlas_save_advice`）；檔名給 `-` 可改從標準輸入傳入。
-   預設存到 `advice-private/`，不進 git、不上網站。使用者明確說要公開時才加 `--publish`，並在之後執行 `build`、commit、push。
+   預設存到 `advice-private/`，不進 git、不上網站。使用者明確說要公開時才加 `--publish`，之後執行 `build`，再照 `sync-mode`（`atlas_sync_mode`）的步驟收尾。只有同步設定為 `push` 時，公開的報告才會出現在線上網站；`local` 與 `commit` 只會出現在本機預覽。
 7. **呈現**：在對話中給出完整報告。
 8. **後續**：詢問是否要把推薦的未收錄文獻與文獻庫缺口交給 **find-papers** skill 去找。使用者同意才執行。
 

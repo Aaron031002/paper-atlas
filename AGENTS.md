@@ -21,7 +21,7 @@
 2. 每個候選論文先 `check` / `atlas_check_duplicate`；已收錄或曾拒絕的跳過。
 3. 介紹依據論文全文撰寫，不捏造任何內容；拿不到全文就不收錄。
 4. 研究建議只在使用者本人於對話中要求時執行；報告預設不公開。
-5. 改完資料後：`node scripts/atlas.mjs build` 通過 → `git commit` → `git push`。
+5. 改完資料後：`node scripts/atlas.mjs build` 通過，再執行 `node scripts/atlas.mjs sync-mode`，照它列出的步驟收尾。這台電腦可能設定為只在本機（`local`，不動 git）、只 commit（`commit`），或 commit 後 push（`push`）。不要假設一定要 push；push 被拒絕時不要重試，告訴使用者。
 6. `config/domain.json` 的分類與規則要先取得使用者同意才改。
 
 不需要安裝任何套件（Node.js 18 以上即可）。`site/data/` 是 build 產物，不要 commit。

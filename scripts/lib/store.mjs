@@ -8,6 +8,7 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 
 export const PATHS = {
   config: path.join(ROOT, 'config', 'domain.json'),
+  localConfig: path.join(ROOT, 'config', 'local.json'),
   papers: path.join(ROOT, 'data', 'papers'),
   advice: path.join(ROOT, 'data', 'advice'),
   advicePrivate: path.join(ROOT, 'advice-private'),
@@ -37,6 +38,31 @@ export function writeJson(file, value) {
 
 export function loadConfig() {
   return readJson(PATHS.config);
+}
+
+/**
+ * What an agent does after changing the library: `local` (rebuild only, no git),
+ * `commit` (also commit), or `push` (commit and push, which redeploys the site).
+ * config/local.json is this machine's own choice and is not committed; it overrides
+ * site.sync in config/domain.json, the default shared by everyone using the repo.
+ * With neither set, the answer is `local`, so a fresh copy never pushes by surprise.
+ */
+export const SYNC_MODES = ['local', 'commit', 'push'];
+
+export function loadSync() {
+  const local = readJson(PATHS.localConfig, {});
+  const shared = loadConfig().site?.sync;
+  let mode = 'local';
+  let source = '預設值（沒有任何設定）';
+  if (local.sync !== undefined) { mode = local.sync; source = 'config/local.json（這台電腦）'; }
+  else if (shared !== undefined) { mode = shared; source = 'config/domain.json 的 site.sync（整個 repo 的預設）'; }
+  if (!SYNC_MODES.includes(mode)) throw new Error(`${source} 的同步設定是「${mode}」，只能是 ${SYNC_MODES.join('、')}`);
+  return { mode, source };
+}
+
+export function saveLocalSync(mode) {
+  if (!SYNC_MODES.includes(mode)) throw new Error(`同步設定只能是 ${SYNC_MODES.join('、')}，收到「${mode}」`);
+  writeJson(PATHS.localConfig, { ...readJson(PATHS.localConfig, {}), sync: mode });
 }
 
 /** All papers in the library, each tagged with the file it came from. */

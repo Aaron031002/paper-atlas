@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   PATHS, ROOT, loadConfig, loadPapers, loadRejected, loadSearchLog, loadAdvice,
-  paperPath, savePaper, writeJson,
+  paperPath, savePaper, writeJson, loadSync, saveLocalSync,
 } from './store.mjs';
 import {
   buildIdentityIndex, findInLibrary, findRejected, identityKeys, normalizeTitle,
@@ -44,6 +44,52 @@ const SORTERS = {
   title: (a, b) => a.title.localeCompare(b.title),
 };
 
+const COMMIT_STEP = 'git add 這次改動的檔案（先用 git status 確認，不要加入無關的檔案），再 git commit，訊息格式為「<type>: <做了什麼>」，type 用 papers / fix / config / site / docs。';
+const SYNC_STEPS = {
+  local: {
+    summary: '只在本機使用：更新本機網站資料，不動 git。',
+    steps: [
+      '不要 git commit，也不要 git push。',
+      '告訴使用者可以執行 node scripts/atlas.mjs serve，在 http://localhost:4173 看到更新後的網站。',
+    ],
+  },
+  commit: {
+    summary: '保留本機版本紀錄：commit，但不 push。',
+    steps: [COMMIT_STEP, '不要 git push。'],
+  },
+  push: {
+    summary: '更新線上網站：commit 後 push（有連結 Vercel 時會自動重新部署）。',
+    steps: [
+      COMMIT_STEP,
+      'git push。',
+      'push 被拒絕（沒有權限、沒有 remote、需要登入）時：不要重試、不要更改 remote，保留 commit，把錯誤原文告訴使用者，並說明若只打算在本機使用，可以執行 node scripts/atlas.mjs sync-mode local。',
+    ],
+  },
+};
+
+/**
+ * How to finish after changing the library, on this machine. Every workflow ends
+ * with these steps, so a copy used only locally never tries to push. An explicit
+ * request from the user in the conversation ("don't push yet", "push it") wins.
+ */
+export function syncInfo() {
+  const { mode, source } = loadSync();
+  return {
+    mode,
+    source,
+    summary: SYNC_STEPS[mode].summary,
+    first: '先執行 build（內含驗證），通過之後：',
+    steps: SYNC_STEPS[mode].steps,
+    note: '使用者在對話中明確要求（例如「先不要 push」「幫我 push」）時，以使用者的話為準。',
+  };
+}
+
+/** Change this machine's setting (config/local.json, not committed). Only when the user asks. */
+export function setSyncMode(mode) {
+  saveLocalSync(mode);
+  return { ok: true, ...syncInfo(), saved_to: 'config/local.json（只影響這台電腦，不會進 git）' };
+}
+
 export function overview() {
   const config = loadConfig();
   const papers = loadPapers();
@@ -58,6 +104,7 @@ export function overview() {
     latest_added: [...papers].sort(SORTERS['added-desc']).slice(0, 5).map(card),
     rejected_count: loadRejected().length,
     search_runs: loadSearchLog().length,
+    sync: syncInfo(),
   };
 }
 
@@ -162,7 +209,7 @@ export function addPaper(input, { by = 'agent', overrideRejected = false, keepAd
     warnings,
     cites_in_library: [...new Set(citesInLibrary)],
     cited_by_in_library: citedByInLibrary,
-    next: '執行 build 重新產生網站資料，然後 git commit 與 push。',
+    next: (() => { const s = syncInfo(); return [`同步設定為 ${s.mode}：${s.summary}`, s.first, ...s.steps]; })(),
   };
 }
 

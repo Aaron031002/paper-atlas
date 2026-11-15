@@ -4,7 +4,8 @@
     "tagline": "AI / ML / NLP / LLM 文獻庫與知識圖譜",
     "language": "zh-TW",
     "repo_url": "https://github.com/Aaron031002/paper-atlas",
-    "url": "https://paper-atlas-wheat.vercel.app"
+    "url": "https://paper-atlas-wheat.vercel.app",
+    "sync": "push"
   },
   "domain": {
     "name": "AI / ML / NLP / LLM",

@@ -5,7 +5,7 @@ description: 操作 Paper Atlas 文獻庫的總覽與入口。當使用者想查
 
 # Paper Atlas
 
-Paper Atlas 是一個以檔案為資料庫的論文文獻庫。每篇 paper 是 `data/papers/<id>.json` 一個檔案，格式固定；`build` 把它們轉成靜態網站（文獻列表、每篇的介紹頁、可拖拉的知識圖譜）。網站部署在 Vercel，push 到 GitHub 的 `main` 之後自動重新部署。
+Paper Atlas 是一個以檔案為資料庫的論文文獻庫。每篇 paper 是 `data/papers/<id>.json` 一個檔案，格式固定；`build` 把它們轉成靜態網站（文獻列表、每篇的介紹頁、可拖拉的知識圖譜）。網站可以只在本機預覽，也可以部署（例如 Vercel 連動 GitHub，push 後自動重新部署）。每台電腦做到哪一步，由下面「每次改完資料之後」的同步設定決定，不要假設一定要 push。
 
 你透過兩種方式之一操作它，功能相同：
 
@@ -32,6 +32,7 @@ Paper Atlas 是一個以檔案為資料庫的論文文獻庫。每篇 paper 是 
 | 給 LLM 讀的精簡總覽（每篇一行 + 關聯） | `context` | `atlas_library_context` |
 | 被引用但尚未收錄的文獻 | `refs` | `atlas_missing_references` |
 | 過去的搜尋紀錄 | `history` | `atlas_search_history` |
+| 這台電腦改完資料後的收尾方式 | `sync-mode` | `atlas_sync_mode` |
 | 分類、關聯類型、來源與篩選規則 | 讀 `config/domain.json` | `atlas_get_config` |
 
 回答使用者關於庫內 paper 的問題時，以這些指令的輸出為準，不要憑印象。
@@ -57,6 +58,7 @@ Paper Atlas 是一個以檔案為資料庫的論文文獻庫。每篇 paper 是 
 
 | 要做的事 | 改哪裡 |
 |---|---|
+| 改完資料後的收尾方式 | 這台電腦：`sync-mode <local\|commit\|push>`；整個 repo 的預設：`config/domain.json` → `site.sync` |
 | 新增或修改分類、顏色 | `config/domain.json` → `categories` |
 | 新增關聯類型 | `config/domain.json` → `relation_types` |
 | 介紹多一個段落 | `config/domain.json` → `intro_sections`，並在 `prompts/paper-intro.md` 補上該段的寫法 |
@@ -70,17 +72,24 @@ Paper Atlas 是一個以檔案為資料庫的論文文獻庫。每篇 paper 是 
 
 ## 每次改完資料之後
 
-```bash
-node scripts/atlas.mjs build      # 內含 validate；失敗時依錯誤訊息修正
-git add -A
-git commit -m "<type>: <做了什麼>"   # type 用 papers / fix / config / site / docs
-git push                          # push 後 Vercel 自動部署
-```
+1. `node scripts/atlas.mjs build`（`atlas_build`）。它內含 validate；失敗就依錯誤訊息修正，修到通過為止。
+2. `node scripts/atlas.mjs sync-mode`（`atlas_sync_mode`），照它列出的步驟收尾。同步設定有三種：
+
+| 設定 | 收尾方式 | 適合 |
+|---|---|---|
+| `local` | 不動 git；告訴使用者用 `serve` 預覽 | 只在自己電腦上使用、沒有 push 權限、從 ZIP 下載的副本 |
+| `commit` | git commit，不 push | 想保留版本紀錄，但不部署 |
+| `push` | git commit 後 git push | 負責更新線上網站的電腦 |
+
+設定的來源依序是：`config/local.json`（這台電腦專用，不進 git）、`config/domain.json` 的 `site.sync`（整個 repo 共用的預設）；兩者都沒有時是 `local`。
+
+- 使用者在對話中明確要求（例如「先不要 push」「幫我 push」）時，以使用者的話為準。
+- 更改設定本身（`sync-mode <模式>`）只在使用者要求時做。
+- push 被拒絕時不要重試、不要更改 remote：保留 commit，把錯誤原文告訴使用者，並提到可以改成 `local`。
+- `site/data/` 是 build 的產物，已列在 `.gitignore`，不要 commit。
 
 想先看結果可以執行 `node scripts/atlas.mjs serve`，在 http://localhost:4173 預覽。
 
-`site/data/` 是 build 的產物，已列在 `.gitignore`，不要 commit。
-
 ## 回報
 
-做完之後用幾句話告訴使用者：改了什麼（附 paper id）、build 是否通過、是否已 push。遇到 `add` 或 `validate` 的錯誤而無法自行修正時，把錯誤訊息原文交給使用者，不要繞過檢查。
+做完之後用幾句話告訴使用者：改了什麼（附 paper id）、build 是否通過、依同步設定做到哪一步（只更新本機、已 commit，或已 push；push 被拒絕時附上錯誤原文）。遇到 `add` 或 `validate` 的錯誤而無法自行修正時，把錯誤訊息原文交給使用者，不要繞過檢查。

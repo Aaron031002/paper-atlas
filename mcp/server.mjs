@@ -21,7 +21,7 @@ const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const INSTRUCTIONS = `Paper Atlas 是一個論文文獻庫。先呼叫 atlas_guide 讀操作說明。
 找新論文：依 atlas_get_skill("find-papers") 的流程；每個候選都先 atlas_check_duplicate，再用 atlas_add_paper 加入。
 給研究建議：依 atlas_get_prompt("research-advice") 的規則，只在使用者本人要求時執行。
-資料改動後呼叫 atlas_build，再用 shell 執行 git commit 與 git push。`;
+資料改動後呼叫 atlas_build，再照 atlas_sync_mode 回報的步驟收尾：這台電腦可能設定為只在本機（不動 git）、只 commit，或 commit 後 push。`;
 
 const str = (description, extra = {}) => ({ type: 'string', description, ...extra });
 const int = (description, extra = {}) => ({ type: 'integer', description, ...extra });
@@ -106,7 +106,8 @@ const TOOLS = {
       if (result.ok) {
         const built = build();
         result.build = built.ok ? `網站資料已更新（${built.papers} 篇）` : { errors: built.errors };
-        result.next = '用 shell 執行 git add -A && git commit && git push，網站才會更新。';
+        const sync = lib.syncInfo();
+        result.next = [`同步設定為 ${sync.mode}：${sync.summary}`, ...sync.steps];
       }
       return result;
     },
@@ -152,6 +153,11 @@ const TOOLS = {
       publish: { type: 'boolean', description: '是否公開到網站，預設 false' },
     }, ['title', 'body']),
     run: (args) => lib.saveAdvice(args),
+  },
+  atlas_sync_mode: {
+    description: '這台電腦改完資料後該怎麼收尾：local（只更新本機，不動 git）、commit（只 commit）、push（commit 後 push）。每次改完資料、build 通過後呼叫，照回傳的步驟做。只有使用者要求時才傳入 mode 來更改設定。',
+    inputSchema: obj({ mode: str('要改成的設定；不填則只查詢', { enum: ['local', 'commit', 'push'] }) }),
+    run: ({ mode }) => (mode ? lib.setSyncMode(mode) : lib.syncInfo()),
   },
   atlas_validate: {
     description: '檢查整個文獻庫：每篇的格式、重複收錄、關聯指向不存在的 paper。',

@@ -2,6 +2,7 @@
 // config/domain.json (categories, relation types, intro sections), so adding a
 // section or a category there needs no change here.
 import { findDuplicatePairs } from './identity.mjs';
+import { SYNC_MODES } from './store.mjs';
 
 const ID_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const DATE_PATTERN = /^\d{4}(-\d{2}(-\d{2})?)?$/;
@@ -165,6 +166,8 @@ export function validateLibrary(papers, config) {
 
   const categoryIds = config.categories.map((c) => c.id);
   if (new Set(categoryIds).size !== categoryIds.length) report.errors.push('config：categories 的 id 重複');
+  const sync = config.site?.sync;
+  if (sync !== undefined && !SYNC_MODES.includes(sync)) report.errors.push(`config：site.sync 是「${sync}」，只能是 ${SYNC_MODES.join('、')}`);
 
   return report;
 }

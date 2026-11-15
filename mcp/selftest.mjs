@@ -86,6 +86,9 @@ try {
   const refs = await call('atlas_missing_references', { min_cited_by: 2 });
   check('atlas_missing_references', Array.isArray(refs.data), `${refs.data.length} 筆`);
 
+  const sync = await call('atlas_sync_mode');
+  check('atlas_sync_mode', ['local', 'commit', 'push'].includes(sync.data.mode) && Array.isArray(sync.data.steps), `${sync.data.mode}（${sync.data.source}）`);
+
   const validate = await call('atlas_validate');
   check('atlas_validate', validate.data.ok === true, `${validate.data.errors?.length} 個錯誤`);
 

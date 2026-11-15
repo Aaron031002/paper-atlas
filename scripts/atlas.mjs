@@ -39,6 +39,8 @@ const HELP = `Paper Atlas CLI
                                     檔名給 - 表示從標準輸入讀取報告本文
 
 維護
+  sync-mode [local|commit|push]     不加參數：顯示這台電腦改完資料後的收尾方式與步驟
+                                    加參數：設定這台電腦的收尾方式（存在不進 git 的 config/local.json）
   validate                          檢查所有 paper 的格式、重複與關聯
   build                             validate 後產生 site/data/（網站讀的資料）
   serve [--port 4173]               build 後在本機預覽網站
@@ -154,6 +156,13 @@ function main() {
         title: flags.title, stage: flags.stage || '', summary: flags.summary || '',
         body: fs.readFileSync(positional[0] === '-' ? 0 : positional[0], 'utf8'), publish: Boolean(flags.publish),
       }));
+    }
+    case 'sync-mode': {
+      const info = positional[0] ? lib.setSyncMode(positional[0]) : lib.syncInfo();
+      if (json) return out(info);
+      out(`同步設定：${info.mode}（來源：${info.source}）\n${info.summary}\n\n改完資料後：\n1. ${info.first.replace(/：$/, '')}\n${info.steps.map((s, i) => `${i + 2}. ${s}`).join('\n')}\n\n${info.note}`);
+      if (info.saved_to) out(`\n已存到 ${info.saved_to}`);
+      return undefined;
     }
     case 'validate': {
       const report = validateLibrary(loadPapers(), loadConfig());
